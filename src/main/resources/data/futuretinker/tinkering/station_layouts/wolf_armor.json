@@ -1,0 +1,37 @@
+{
+  "icon": {
+    "item": "futuretinker:wolf_armor",
+    "nbt": "{Damage:0,tic_broken:0b,tic_display:1b,tic_materials:[\"tconstruct:ui_render#head\",\"tconstruct:ui_render#handle\",\"tconstruct:ui_render#extra\"]}"
+  },
+  "input_slots": [
+    {
+      "filter": {
+        "item": "futuretinker:wolf_armor_plating"
+      },
+      "icon": "futuretinker:wolf_armor_plating",
+      "translation_key": "item.futuretinker.wolf_armor_plating",
+      "x": 33,
+      "y": 29
+    },
+    {
+      "filter": {
+        "item": "futuretinker:wolf_armor_lining"
+      },
+      "icon": "futuretinker:wolf_armor_lining",
+      "translation_key": "item.futuretinker.wolf_armor_lining",
+      "x": 33,
+      "y": 53
+    },
+    {
+      "filter": {
+        "item": "futuretinker:wolf_armor_binding"
+      },
+      "icon": "futuretinker:wolf_armor_binding",
+      "translation_key": "item.futuretinker.wolf_armor_binding",
+      "x": 51,
+      "y": 53
+    }
+  ],
+  "sortIndex": 100,
+  "translation_key": "item.futuretinker.wolf_armor"
+}

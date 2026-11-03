@@ -1,0 +1,8 @@
+{
+  "type": "tconstruct:part_builder",
+  "cost": 6,
+  "pattern": "futuretinker:wolf_armor_plating",
+  "result": {
+    "item": "futuretinker:wolf_armor_plating"
+  }
+}

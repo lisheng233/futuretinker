@@ -1,0 +1,8 @@
+{
+  "type": "tconstruct:part_builder",
+  "cost": 2,
+  "pattern": "futuretinker:wolf_armor_lining",
+  "result": {
+    "item": "futuretinker:wolf_armor_lining"
+  }
+}
