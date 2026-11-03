@@ -28,7 +28,9 @@ public final class WolfArmorModule implements FtModule {
     @Override
     public void attach(IEventBus modBus) {
         // 交互是 forge 总线上的事件；模块被关掉时这个方法根本不会被调用，所以不用再判开关。
+        // 两个事件都监听：真客户端点实体派发 EntityInteractSpecific，服务端交互派发 EntityInteract。
         MinecraftForge.EVENT_BUS.addListener(WolfArmorInteraction::onEntityInteract);
+        MinecraftForge.EVENT_BUS.addListener(WolfArmorInteraction::onEntityInteractSpecific);
         FutureTinker.LOGGER.info("Future Tinker: 狼铠护甲定义 id = {}（对应 data/futuretinker/tinkering/tool_definitions/*.json）",
                 WolfArmorContent.armorDefinitionId());
     }
