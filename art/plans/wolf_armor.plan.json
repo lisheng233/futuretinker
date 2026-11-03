@@ -1,6 +1,6 @@
 {
   "request": {
-    "query": "wolf armor: the assembled piece, vanilla iron_chestplate's contour, our cold steel, no accent",
+    "query": "wolf armor: vanilla 1.21.4 wolf armor contour (a back blanket with two hanging straps), our cold steel, no accent",
     "form": "item",
     "name": "wolf_armor",
     "namespace": "futuretinker",
@@ -14,12 +14,12 @@
   },
   "descriptor": {
     "target": "tinkers wolf armor item (an armor variant for a wolf)",
-    "semantic": "A 16x16 item sprite for the finished wolf armor: the vanilla iron_chestplate contour kept exactly (armor is armor), shaded as one continuous cold-steel ramp, quiet, no accent.",
+    "semantic": "A 16x16 item sprite for the finished wolf armor. The contour is vanilla 1.21.4's wolf armor icon: a wide blanket that lies across a wolf's back with two short straps hanging below -- NOT a human chestplate. Shaded as our cold steel, quiet, no accent.",
     "visual_identity": [
       "16x16 transparent-background item sprite",
-      "contour identical to vanilla minecraft:item/iron_chestplate",
-      "cold blue-grey steel matching the plating part exactly -- the two are one family",
-      "no accent: the colour difference to vanilla iron is the material, not a glow"
+      "contour identical to minecraft 1.21.4 item/wolf_armor -- the shape authority for this object",
+      "reads as a back blanket with straps, not as a breastplate",
+      "cold blue-grey steel matching the plating part; the straps read darker because the reference shades them darker"
     ],
     "parts": [
       {
@@ -30,8 +30,9 @@
         "layer": 0,
         "style_role": "silhouette support",
         "recognition_terms": [
-          "armor",
-          "plate"
+          "blanket",
+          "saddle",
+          "armor"
         ],
         "contour_intent": "compact"
       }
@@ -39,15 +40,16 @@
     "negative_identities": [
       "iron chestplate",
       "diamond chestplate",
-      "netherite chestplate"
+      "saddle",
+      "banner"
     ],
-    "orientation": "centered, same three-quarter view as vanilla iron_chestplate",
-    "reference_strategy": "appearance_only against vanilla iron_chestplate: same object class, so the contour and its shoulder-highlight rhythm are the authority; brightness only, so the metal is our cold steel.",
+    "orientation": "centered, same view as vanilla 1.21.4 item/wolf_armor",
+    "reference_strategy": "appearance_only against the vanilla 1.21.4 wolf armor icon: that is the same object class and the authoritative contour for 'armor that goes on a wolf'. Brightness only, so the material becomes our steel.",
     "shape_edit_mode": "appearance_only",
     "reference_part_map": null,
     "target_part_map": null,
-    "class": "metal",
-    "layer": "metal"
+    "class": "unknown",
+    "layer": "unknown"
   },
   "geometry": {
     "width": 16,
@@ -106,11 +108,15 @@
   },
   "appearance": {
     "palette": {
-      "steel_1": "#22272E",
-      "steel_2": "#2F3742",
-      "steel_3": "#46525F",
-      "steel_4": "#6E7A8A",
-      "steel_5": "#B9C7D8"
+      "steel_1": "#3A444F",
+      "steel_2": "#45505B",
+      "steel_3": "#525E6A",
+      "steel_4": "#616E7B",
+      "steel_5": "#71808E",
+      "steel_6": "#8494A3",
+      "steel_7": "#9AAAB9",
+      "steel_8": "#B4C4D3",
+      "steel_9": "#D2E0EC"
     },
     "parts": {
       "armor": {
@@ -119,7 +125,11 @@
           "steel_2",
           "steel_3",
           "steel_4",
-          "steel_5"
+          "steel_5",
+          "steel_6",
+          "steel_7",
+          "steel_8",
+          "steel_9"
         ],
         "material": "metal",
         "shade_axis": "top_left_to_bottom_right",
@@ -129,8 +139,8 @@
         "shade_mode": "gradient"
       }
     },
-    "outline_color": null,
-    "outline_width": 0,
+    "outline_color": "#1A1F26",
+    "outline_width": 1,
     "transparent_background": true,
     "reference_sampling": "value",
     "region_rules": [],
@@ -138,7 +148,7 @@
       "armor": "value"
     },
     "part_reference_sources": {
-      "armor": "iron_chestplate"
+      "armor": "wolf_armor_1214"
     },
     "part_reference_composite": {},
     "motif_policy": "model_authored",
@@ -152,19 +162,17 @@
   },
   "references": [
     {
-      "path": "../refs/iron_chestplate.png",
-      "name": "iron_chestplate",
+      "path": "../refs1214/wolf_armor.png",
+      "name": "wolf_armor_1214",
       "roles": [
         "shape",
-        "pixel_style",
-        "material"
+        "pixel_style"
       ],
       "notes": [
-        "group=minecraft:item/iron_chestplate",
-        "shape authority: appearance_only copies the armor contour; brightness only, so it is our steel and not vanilla iron",
-        "band_maximum_isolated=0.18 is a DECLARED limit with evidence: this asset class answers 15.83% (tconstruct chestplate_plating) and 15.94% (minecraft iron_chestplate) on mc-art audit, because a 16x16 metal piece carries a hard specular step. Our render measured 14.17%, i.e. below both authorities; the 10% default belongs to tiles, not to metal items."
+        "group=minecraft:item/wolf_armor from the 1.21.4 client jar (downloaded from piston-data.mojang.com)",
+        "shape authority: the vanilla wolf armor icon is a back blanket with hanging straps; copying its contour is what keeps this from being a recoloured chestplate"
       ],
-      "class": "metal"
+      "class": "unknown"
     }
   ]
 }

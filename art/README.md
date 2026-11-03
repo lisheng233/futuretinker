@@ -52,3 +52,27 @@ python -m mc_art render --plan art/plans/wolf_armor.plan.json --out art/out/wolf
 
 这一版是能交付的**首版**，不是终稿。M3 做内衬效果时需要世界内渲染（1.20.1 的 `WolfRenderer`
 没有护甲层），那时会回来调这三问答。
+
+## 成品图标改版：形取 1.21.4，不再画成胸甲
+
+首版把成品图标画成了「换皮铁胸甲」，方向错了。改成取**高版本原版狼铠**的形状：
+
+```bash
+# 参考来源：Mojang 官方版本清单 -> 1.21.4 client.jar（下载到 .art-work/，不入仓）
+python -m mc_art list-groups --source <1.21.4 client.jar> --extract minecraft:item/wolf_armor --to art/refs1214
+```
+
+1.21.4 的狼铠图标是**横着的背垫 + 两条垂下的小带子**（不是竖着的胸甲），
+`appearance_only` 直接沿它的 alpha 轮廓，材质换成我们的冷钢。
+
+明暗调了三轮，每轮都有数：
+
+| 轮次 | 画法 | isolated | 结论 |
+| --- | --- | --- | --- |
+| 1 | 等 α + 5 档 gradient | 1.35% | 轮廓对了，但整体压成灰泥，太暗 |
+| 2 | 5 档 bands + 描边 | **16.22%（失败）** | 相邻档位亮度差 > 24，被判 scattered |
+| 3 | 9 档细密色阶 + gradient | **5.41%** | **比 1.21.4 参考自身的 6.76% 还低**，色阶整体上移后亮顶读得出来 |
+
+第 2 轮是关键判据：先量参考自身（6.76%），才判定「16.22% 是我画得差，不是阈值不合适」——
+所以没有走 waiver，而是改画法。
+
