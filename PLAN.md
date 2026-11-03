@@ -19,23 +19,80 @@
 
 给原版狼提供一套匠魂式部件装备，使其成为有配装逻辑的宠物装备，而非单纯加护甲值的胸甲。
 
+**定位澄清（2026-11 修订）**：狼铠是**护甲的变种**，走匠魂的护甲线，不是工具/武器线。
+它不是 `ModifiableToolItem`，也不该有近战/挖掘那套 tool stats。
+
+### 为什么可以做成「护甲」（两个已核实的前提）
+
+1. **狼在 1.20.1 有护甲槽。** `LivingEntity.getArmorSlots()` 是抽象方法，`Mob` 实现了它
+   （`head/chest/legs/feet` 四个 `ItemStack`，`getItemBySlot`/`setItemSlot` 可用，
+   `Mob` 的存档自带 `ArmorItems`）。原版没给狼用，不代表不存在。
+   把铠甲 `setItemSlot(EquipmentSlot.CHEST, stack)` 进狼身，护甲值/韧性会走
+   `Attributes.ARMOR`/`ARMOR_TOUGHNESS`——装备属性对任何 `LivingEntity` 生效，不只是玩家。
+2. **匠魂的护甲机器是 `LivingEntity` 泛化的。** `EquipmentContext.withTool(LivingEntity, IToolStackView, EquipmentSlot)`
+   收的是 `LivingEntity`，`hasModifiableArmor()` 通过 `getItemBySlot` 遍历护甲槽，
+   所以狼身上那件铠甲能被同一套 hook 看见。
+
+### 技术基底（已核实 3.12.1.236 的类与数据形状）
+
+| 环节 | 匠魂现成的东西 | 我们要产出 |
+| --- | --- | --- |
+| 物品 | `library/tools/item/armor/ModifiableArmorItem`（`extends ArmorItem implements IModifiableDisplay`，构造需要 `ArmorMaterial` + `ArmorItem.Type` + `ToolDefinition`） | `WolfArmorItem extends ModifiableArmorItem`（或薄封装） |
+| 材质映射 | `library/tools/definition/ModifiableArmorMaterial.create(ResourceLocation, SoundEvent, ArmorItem.Type...)`：每个槽位映射到一个 `ToolDefinition` | 一个 `ModifiableArmorMaterial` 实例 |
+| 数据定义 | `data/<ns>/tinkering/tool_definitions/<id>.json`，模块：`part_stats`（部件列表 + `primary_part`）、`default_materials`、`multiply_stats`、`modifier_slots`（`defense`/`upgrades`）| `wolf_armor.json` |
+| 材料强度 | `tools/stats/PlatingMaterialStats`（record：`durability/armor/toughness/...`，按槽位分 `HELMET/CHESTPLATE/LEGGINGS/BOOTS/SHIELD` 五种 `MaterialStatType`） | 复用 `CHESTPLATE` 类型 → **不需要给现有材料补任何新数据** |
+| 强化/防御槽 | `modifier_slots` 里的 `defense`/`upgrades`；护甲 hook：`ProtectionModifierHook`、`ModifyDamageModifierHook`、`OnAttackedModifierHook`、`DamageBlockModifierHook`… | 直接声明，不写代码 |
+| 装配/修复 | 匠魂装配台按 `ToolDefinition` 的 `part_stats` 出配方；`MaterialRepairModule` 管修复 | 站台布局 + 配方 JSON |
+| 参考实现 | 匠魂板甲：`plate_chestplate.json` 的部件是 `tconstruct:chestplate_plating` + `tconstruct:maille` | 照这个形状，部件换成狼铠自己的 |
+
 ### 部件设计
 
-| 部件     | 决定属性     | 材料影响方向                         |
-| -------- | ------------ | ------------------------------------ |
-| 外层甲片 | 护甲值、韧性 | 硬抗型减伤 vs 闪避型减伤             |
-| 内衬     | 特殊效果     | 吸引仇恨 / 受击反弹 / 低血量速度爆发 |
-| 绑定     | 可修复性     | 常规修复 / 狼休息时缓慢自修复        |
+匠魂板甲是「主体甲片 + 衬料」两个部件，狼铠按 PLAN 的三部件设计（部件数与 `part_stats`
+的叠加权重成正比，材料选择因此能改变定位）：
+
+| 部件     | 决定属性     | 材料影响方向                         | 对应匠魂部件类型 |
+| -------- | ------------ | ------------------------------------ | ---------------- |
+| 外层甲片 | 护甲值、韧性 | 硬抗型减伤 vs 闪避型减伤             | `wolf_armor_plating`（主部件） |
+| 内衬     | 特殊效果     | 吸引仇恨 / 受击反弹 / 低血量速度爆发 | `wolf_armor_lining` |
+| 绑定     | 可修复性     | 常规修复 / 狼休息时缓慢自修复        | `wolf_armor_binding` |
+
+### 需要我们自己补的三件事（原版与匠魂都不管）
+
+1. **渲染**：1.20.1 的 `WolfRenderer` 没有护甲层，装上去不会自己显示。要么加一个
+   `RenderLayer`（狼铠的模型/贴图要过 `mc-art` 引擎），要么先只做物品栏外观、世界内不显示。
+2. **掉落策略**：`Mob.armorDropChances` 默认会让装备在死亡时掉落，匠魂的
+   `ModifierEvents.onLivingDrops` 也会遍历装备槽物品。驯服的狼死了铠甲掉了属于设计缺陷，
+   要显式处理（保留 / 交给主人 / 掉在死亡点）。
+3. **交互**：右键狼穿、潜行右键脱（`Wolf#mobInteract`），以及换部件走装配台。
+
+### 前提验证（已实测通过）
+
+**狼的护甲槽真的生效**——用原版铁胸甲当探针跑了一次 GameTest
+（`gametest/WolfEquipmentTests.chestSlotGivesWolfArmorValue`）：
+
+- 空白对照：裸狼 `getArmorValue() == 0`；
+- 往 `EquipmentSlot.CHEST` 放进铁胸甲，第 5 tick 断言 `getArmorValue() > 0` 且槽位保存住了物品；
+- 结果：`All 4 required tests passed :)`，退出码 0。
+
+结论：`Mob` 的护甲槽可以被狼使用，护甲属性对非玩家生效，狼铠可以做成真正的护甲。
+
+### 待实测（M2 里做，别提前当成已知）
+
+匠魂自己的减伤流水线是否对非玩家生效：`EquipmentContext` 收 `LivingEntity`，
+但监听伤害的入口是不是 Player-gated，要等有了真的「可改造护甲」才能测。
+若不生效，就在 `LivingHurtEvent` 里自己构造
+`EquipmentContext.withTool(wolf, toolStack, EquipmentSlot.CHEST)` 调 `ProtectionModifierHook`。
+**判据**：同一种伤害打在裸狼 / 穿匠魂狼铠的狼身上，比较最终伤害数值。
 
 ### 技术要点
 
-- 宠物装备 NBT 存储与匠魂部件数据的对接
-- 狼的受击、低血量、战斗状态事件监听
-- 部件替换与工具台/装配台的交互流程
+- 狼铠的物品命名空间隔离（`futuretinker:` 前缀），与其它匠魂附属共存
+- 狼的受击、低血量、战斗状态事件监听（内衬效果）
+- 组装走匠魂装配台；部件替换与修复走匠魂既有流程，不另造一套
 
 ### 验收标准
 
-- 狼铠可正常装配、修复、替换部件
+- 狼铠可正常装配、修复、替换部件（走匠魂站台，不是自定义界面）
 - 至少三种内衬材料产生可感知的玩法差异
 - 模块可通过配置禁用，禁用后不影响其他模块
 
