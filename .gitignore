@@ -11,3 +11,6 @@ out/
 # Python 判定的缓存
 __pycache__/
 *.pyc
+
+# 美术工作区（venv、参考图、渲染中间产物）；plan 已复制进 art/plans/ 入仓
+.art-work/

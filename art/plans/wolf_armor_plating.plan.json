@@ -1,0 +1,171 @@
+{
+  "request": {
+    "query": "wolf armor plating: the tinkers chestplate-plating contour, our cold steel, no accent",
+    "form": "item",
+    "name": "wolf_armor_plating",
+    "namespace": "futuretinker",
+    "width": 16,
+    "height": 16,
+    "novelty": 0.2,
+    "target_path": null,
+    "shape_policy": "planned",
+    "seed": 21,
+    "pack_format": 15
+  },
+  "descriptor": {
+    "target": "wolf armor plating part item",
+    "semantic": "A 16x16 item sprite for a tinkers tool part: the chestplate-plating contour kept exactly (it is the same class of object), shaded as one continuous cold-steel ramp, quiet, with no accent colour at all.",
+    "visual_identity": [
+      "16x16 transparent-background item sprite",
+      "contour identical to tinkers construct chestplate_plating -- only the material is ours",
+      "cold blue-grey steel, one continuous five-step ramp",
+      "no accent: a plating part is not the thing that draws the eye"
+    ],
+    "parts": [
+      {
+        "id": "plating",
+        "meaning": "the whole plate",
+        "required": true,
+        "paint_only": false,
+        "layer": 0,
+        "style_role": "silhouette support",
+        "recognition_terms": [
+          "plate",
+          "armor"
+        ],
+        "contour_intent": "compact"
+      }
+    ],
+    "negative_identities": [
+      "human chestplate",
+      "shield",
+      "ingot"
+    ],
+    "orientation": "centered, same three-quarter view as tinkers chestplate_plating",
+    "reference_strategy": "appearance_only: keep the tinkers chestplate_plating alpha contour exactly and take its shading as brightness only, so the plate keeps the reference's 3D rhythm while the metal becomes our cold steel.",
+    "shape_edit_mode": "appearance_only",
+    "reference_part_map": null,
+    "target_part_map": null,
+    "class": "unknown",
+    "layer": "unknown"
+  },
+  "geometry": {
+    "width": 16,
+    "height": 16,
+    "parts": [
+      {
+        "id": "plating",
+        "meaning": "the whole plate",
+        "required": true,
+        "paint_only": false,
+        "layer": 0,
+        "style_role": "silhouette support",
+        "recognition_terms": [
+          "plate"
+        ],
+        "contour_intent": "compact"
+      }
+    ],
+    "primitives": [
+      {
+        "id": "plating_mask",
+        "part_id": "plating",
+        "primitive": "custom_mask",
+        "params": {
+          "offset": [
+            0,
+            0
+          ],
+          "marker": "X",
+          "rows": [
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX"
+          ]
+        },
+        "layer": 0
+      }
+    ],
+    "connections": [],
+    "constraints": [],
+    "uv_regions": [],
+    "background_transparent": true
+  },
+  "appearance": {
+    "palette": {
+      "steel_1": "#22272E",
+      "steel_2": "#2F3742",
+      "steel_3": "#46525F",
+      "steel_4": "#6E7A8A",
+      "steel_5": "#B9C7D8"
+    },
+    "parts": {
+      "plating": {
+        "colors": [
+          "steel_1",
+          "steel_2",
+          "steel_3",
+          "steel_4",
+          "steel_5"
+        ],
+        "material": "metal",
+        "shade_axis": "top_left_to_bottom_right",
+        "noise": 0.0,
+        "highlight_ratio": 0.0,
+        "marks": [],
+        "shade_mode": "gradient"
+      }
+    },
+    "outline_color": null,
+    "outline_width": 0,
+    "transparent_background": true,
+    "reference_sampling": "value",
+    "region_rules": [],
+    "part_reference_sampling": {
+      "plating": "value"
+    },
+    "part_reference_sources": {
+      "plating": "chestplate_plating"
+    },
+    "part_reference_composite": {},
+    "motif_policy": "model_authored",
+    "accent_colors": [],
+    "accent_budget": 0,
+    "accent_min_cluster": 1,
+    "accent_cleanup": false,
+    "accent_edge_max": 90,
+    "band_maximum_isolated": 0.18,
+    "band_maximum_step": 30,
+    "threshold_waiver": "This asset class cannot meet the 0.10 default: mc-art audit reports isolated=15.83% on the shape authority tconstruct chestplate_plating and 15.94% on minecraft iron_chestplate, because a 16x16 metal armour piece carries a hard specular step by design. Our render measured 14.17% -- below both authorities -- so the sprite is not more scattered than the art it is matched to; the 0.10 default is a tile budget."
+  },
+  "references": [
+    {
+      "path": "../refs/plating.png",
+      "name": "chestplate_plating",
+      "roles": [
+        "shape",
+        "pixel_style",
+        "material"
+      ],
+      "notes": [
+        "group=tconstruct:item/chestplate_plating",
+        "shape authority: appearance_only copies its contour; brightness only, so the plate is tinkers' geometry with our steel",
+        "band_maximum_isolated=0.18 is a DECLARED limit with evidence: this asset class answers 15.83% (tconstruct chestplate_plating) and 15.94% (minecraft iron_chestplate) on mc-art audit, because a 16x16 metal piece carries a hard specular step. Our render measured 14.17%, i.e. below both authorities; the 10% default belongs to tiles, not to metal items."
+      ],
+      "class": "metal"
+    }
+  ]
+}

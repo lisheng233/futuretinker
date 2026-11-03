@@ -1,0 +1,147 @@
+{
+  "request": {
+    "query": "wolf armor lining: a leather hide shape, soft warm leather, no accent",
+    "form": "item",
+    "name": "wolf_armor_lining",
+    "namespace": "futuretinker",
+    "width": 16,
+    "height": 16,
+    "novelty": 0.2,
+    "target_path": null,
+    "shape_policy": "planned",
+    "seed": 33,
+    "pack_format": 15
+  },
+  "descriptor": {
+    "target": "wolf armor lining part item",
+    "semantic": "A 16x16 item sprite for the soft inner lining of a wolf's armor: the vanilla leather hide contour kept exactly, shaded as one warm leather ramp, no accent.",
+    "visual_identity": [
+      "16x16 transparent-background item sprite",
+      "contour identical to vanilla minecraft:item/leather -- it is the same class of object (a hide/padding)",
+      "warm brown leather, one continuous five-step ramp",
+      "no accent: the lining is padding, not a jewel"
+    ],
+    "parts": [
+      {
+        "id": "lining",
+        "meaning": "the whole hide",
+        "required": true,
+        "paint_only": false,
+        "layer": 0,
+        "style_role": "silhouette support",
+        "recognition_terms": ["hide", "leather"],
+        "contour_intent": "compact"
+      }
+    ],
+    "negative_identities": ["cow hide item", "raw beef", "cloth"],
+    "orientation": "centered, same view as vanilla leather",
+    "reference_strategy": "appearance_only against vanilla leather: the hide contour is the right object class and its mottled shading is the right surface rhythm; brightness only, so the hue becomes ours.",
+    "shape_edit_mode": "appearance_only",
+    "reference_part_map": null,
+    "target_part_map": null,
+    "class": "unknown",
+    "layer": "unknown"
+  },
+  "geometry": {
+    "width": 16,
+    "height": 16,
+    "parts": [
+      {
+        "id": "lining",
+        "meaning": "the whole hide",
+        "required": true,
+        "paint_only": false,
+        "layer": 0,
+        "style_role": "silhouette support",
+        "recognition_terms": ["hide"],
+        "contour_intent": "compact"
+      }
+    ],
+    "primitives": [
+      {
+        "id": "lining_mask",
+        "part_id": "lining",
+        "primitive": "custom_mask",
+        "params": {
+          "offset": [0, 0],
+          "marker": "X",
+          "rows": [
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX"
+          ]
+        },
+        "layer": 0
+      }
+    ],
+    "connections": [],
+    "constraints": [],
+    "uv_regions": [],
+    "background_transparent": true
+  },
+  "appearance": {
+    "palette": {
+      "leather_1": "#1E1509",
+      "leather_2": "#33230F",
+      "leather_3": "#4C3418",
+      "leather_4": "#6A4A22",
+      "leather_5": "#8A6431"
+    },
+    "parts": {
+      "lining": {
+        "colors": ["leather_1", "leather_2", "leather_3", "leather_4", "leather_5"],
+        "material": "leather",
+        "shade_axis": "top_left_to_bottom_right",
+        "noise": 0.0,
+        "highlight_ratio": 0.0,
+        "marks": [],
+        "shade_mode": "gradient"
+      }
+    },
+    "outline_color": null,
+    "outline_width": 0,
+    "transparent_background": true,
+    "reference_sampling": "value",
+    "region_rules": [],
+    "part_reference_sampling": {
+      "lining": "value"
+    },
+    "part_reference_sources": {
+      "lining": "leather"
+    },
+    "part_reference_composite": {},
+    "motif_policy": "model_authored",
+    "accent_colors": [],
+    "accent_budget": 0,
+    "accent_min_cluster": 1,
+    "accent_cleanup": false,
+    "accent_edge_max": 90,
+    "band_maximum_isolated": 0.1,
+    "band_maximum_step": 30
+  },
+  "references": [
+    {
+      "path": "../refs/leather.png",
+      "name": "leather",
+      "roles": ["shape", "pixel_style", "material"],
+      "notes": [
+        "group=minecraft:item/leather",
+        "shape authority: the same object class (a hide); appearance_only keeps its contour and mottling, brightness only"
+      ],
+      "class": "leather"
+    }
+  ]
+}

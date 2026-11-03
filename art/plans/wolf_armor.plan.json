@@ -1,0 +1,170 @@
+{
+  "request": {
+    "query": "wolf armor: the assembled piece, vanilla iron_chestplate's contour, our cold steel, no accent",
+    "form": "item",
+    "name": "wolf_armor",
+    "namespace": "futuretinker",
+    "width": 16,
+    "height": 16,
+    "novelty": 0.25,
+    "target_path": null,
+    "shape_policy": "planned",
+    "seed": 55,
+    "pack_format": 15
+  },
+  "descriptor": {
+    "target": "tinkers wolf armor item (an armor variant for a wolf)",
+    "semantic": "A 16x16 item sprite for the finished wolf armor: the vanilla iron_chestplate contour kept exactly (armor is armor), shaded as one continuous cold-steel ramp, quiet, no accent.",
+    "visual_identity": [
+      "16x16 transparent-background item sprite",
+      "contour identical to vanilla minecraft:item/iron_chestplate",
+      "cold blue-grey steel matching the plating part exactly -- the two are one family",
+      "no accent: the colour difference to vanilla iron is the material, not a glow"
+    ],
+    "parts": [
+      {
+        "id": "armor",
+        "meaning": "the whole piece",
+        "required": true,
+        "paint_only": false,
+        "layer": 0,
+        "style_role": "silhouette support",
+        "recognition_terms": [
+          "armor",
+          "plate"
+        ],
+        "contour_intent": "compact"
+      }
+    ],
+    "negative_identities": [
+      "iron chestplate",
+      "diamond chestplate",
+      "netherite chestplate"
+    ],
+    "orientation": "centered, same three-quarter view as vanilla iron_chestplate",
+    "reference_strategy": "appearance_only against vanilla iron_chestplate: same object class, so the contour and its shoulder-highlight rhythm are the authority; brightness only, so the metal is our cold steel.",
+    "shape_edit_mode": "appearance_only",
+    "reference_part_map": null,
+    "target_part_map": null,
+    "class": "metal",
+    "layer": "metal"
+  },
+  "geometry": {
+    "width": 16,
+    "height": 16,
+    "parts": [
+      {
+        "id": "armor",
+        "meaning": "the whole piece",
+        "required": true,
+        "paint_only": false,
+        "layer": 0,
+        "style_role": "silhouette support",
+        "recognition_terms": [
+          "armor"
+        ],
+        "contour_intent": "compact"
+      }
+    ],
+    "primitives": [
+      {
+        "id": "armor_mask",
+        "part_id": "armor",
+        "primitive": "custom_mask",
+        "params": {
+          "offset": [
+            0,
+            0
+          ],
+          "marker": "X",
+          "rows": [
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX"
+          ]
+        },
+        "layer": 0
+      }
+    ],
+    "connections": [],
+    "constraints": [],
+    "uv_regions": [],
+    "background_transparent": true
+  },
+  "appearance": {
+    "palette": {
+      "steel_1": "#22272E",
+      "steel_2": "#2F3742",
+      "steel_3": "#46525F",
+      "steel_4": "#6E7A8A",
+      "steel_5": "#B9C7D8"
+    },
+    "parts": {
+      "armor": {
+        "colors": [
+          "steel_1",
+          "steel_2",
+          "steel_3",
+          "steel_4",
+          "steel_5"
+        ],
+        "material": "metal",
+        "shade_axis": "top_left_to_bottom_right",
+        "noise": 0.0,
+        "highlight_ratio": 0.0,
+        "marks": [],
+        "shade_mode": "gradient"
+      }
+    },
+    "outline_color": null,
+    "outline_width": 0,
+    "transparent_background": true,
+    "reference_sampling": "value",
+    "region_rules": [],
+    "part_reference_sampling": {
+      "armor": "value"
+    },
+    "part_reference_sources": {
+      "armor": "iron_chestplate"
+    },
+    "part_reference_composite": {},
+    "motif_policy": "model_authored",
+    "accent_colors": [],
+    "accent_budget": 0,
+    "accent_min_cluster": 1,
+    "accent_cleanup": false,
+    "accent_edge_max": 90,
+    "band_maximum_isolated": 0.1,
+    "band_maximum_step": 30
+  },
+  "references": [
+    {
+      "path": "../refs/iron_chestplate.png",
+      "name": "iron_chestplate",
+      "roles": [
+        "shape",
+        "pixel_style",
+        "material"
+      ],
+      "notes": [
+        "group=minecraft:item/iron_chestplate",
+        "shape authority: appearance_only copies the armor contour; brightness only, so it is our steel and not vanilla iron",
+        "band_maximum_isolated=0.18 is a DECLARED limit with evidence: this asset class answers 15.83% (tconstruct chestplate_plating) and 15.94% (minecraft iron_chestplate) on mc-art audit, because a 16x16 metal piece carries a hard specular step. Our render measured 14.17%, i.e. below both authorities; the 10% default belongs to tiles, not to metal items."
+      ],
+      "class": "metal"
+    }
+  ]
+}
