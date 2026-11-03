@@ -72,17 +72,18 @@
 
 - 空白对照：裸狼 `getArmorValue() == 0`；
 - 往 `EquipmentSlot.CHEST` 放进铁胸甲，第 5 tick 断言 `getArmorValue() > 0` 且槽位保存住了物品；
-- 结果：`All 4 required tests passed :)`，退出码 0。
+- 结果：5 条必需测试全过，退出码 0。
 
 结论：`Mob` 的护甲槽可以被狼使用，护甲属性对非玩家生效，狼铠可以做成真正的护甲。
+后续 M2 第一刀进一步确认：穿匠魂狼铠后护甲值 5、8 点玩家攻击的伤害从 8.0 降到 7.68。
 
-### 待实测（M2 里做，别提前当成已知）
+### 仍未实测（别提前当成已知）
 
-匠魂自己的减伤流水线是否对非玩家生效：`EquipmentContext` 收 `LivingEntity`，
-但监听伤害的入口是不是 Player-gated，要等有了真的「可改造护甲」才能测。
+**匠魂自己的保护类强化**（`ProtectionModifierHook` 等）是否对非玩家生效。现在狼铠还没有任何
+保护强化，护甲值是走原版属性 + 原版减免公式的，所以测不出这一层。等 M3 给狼铠加强化后再测；
 若不生效，就在 `LivingHurtEvent` 里自己构造
-`EquipmentContext.withTool(wolf, toolStack, EquipmentSlot.CHEST)` 调 `ProtectionModifierHook`。
-**判据**：同一种伤害打在裸狼 / 穿匠魂狼铠的狼身上，比较最终伤害数值。
+`EquipmentContext.withTool(wolf, toolStack, EquipmentSlot.CHEST)` 调 hook。
+**判据**：同一种伤害打在裸狼 / 穿**带保护强化**的狼铠的狼身上，比较最终伤害数值。
 
 ### 技术要点
 
@@ -137,14 +138,31 @@
 | 阶段 | 内容                                 | 产出                         | 状态 |
 | ---- | ------------------------------------ | ---------------------------- | ---- |
 | M1   | 项目骨架、模组元数据、配置系统       | 可加载的空模组，模块开关生效 | ✅ 已完成（见下「M1 完成情况」） |
-| M2   | 狼铠部件注册、装配/修复流程          | 狼铠可制作可使用             | 未开始 |
+| M2   | 狼铠部件注册、装配/修复流程          | 狼铠可制作可使用             | 🚧 进行中：部件/护甲/穿脱/减伤已通；站台配方与修复待做 |
 | M3   | 狼铠内衬效果与事件逻辑               | 三种以上材料玩法差异可验证   | 未开始 |
 | M4   | 长矛注册与基础攻击                   | 长矛可制作，基础伤害正常     | 未开始 |
 | M5   | 冲锋机制三件套（速度伤害/击落/疲劳） | 核心差异化机制完成           | 未开始 |
 | M6   | 平衡调整、配置细化、文档             | 可发布版本                   | 未开始 |
 
-## M1 完成情况（准备工作）
+## M2 进度（狼铠第一刀，已提交）
 
+**已通**（每条都有 GameTest 或日志证据）：
+
+- 三个部件注册：`wolf_armor_plating`（胸甲板材统计）/ `wolf_armor_lining`（`tconstruct:maille` 无统计）/
+  `wolf_armor_binding`（`tconstruct:binding` 无统计）。
+- 护甲定义 `futuretinker:wolf_armor_chestplate` 被加载（日志打印 id，测试断言耐久 > 0），
+  数据文件 `data/futuretinker/tinkering/tool_definitions/wolf_armor_chestplate.json`
+  照匠魂板甲的形状写（`part_stats` + `default_materials` + `modifier_slots` defense 2 / upgrades 1）。
+- 穿脱：右键驯服狼穿甲、潜行右键空手脱下（取消事件，避免同时触发坐下）。
+- 减伤：同一次玩家攻击（8 点）打在裸狼 / 穿铁狼铠的狼身上，掉血 8.0 vs 7.68，
+  护甲值 5；按原版公式 5 点护甲对 8 点伤害正好是 4% 减免。
+- 四张 16×16 贴图由 `mc-art` 引擎生成（plan 在 `art/plans/`，依据在 `art/README.md`）。
+- 判定：5 条必需测试全过；`--fault` 仍被抓到。
+
+**还缺（M2 剩下的）**：匠魂站台布局与部件/护甲的配方 JSON（目前只能用代码构造）、
+修复流程验证、狼死亡掉落策略、世界内渲染（1.20.1 的 `WolfRenderer` 没有护甲层）。
+
+## M1 完成情况（准备工作）
 **交付**：能在 1.20.1 / Forge 47.3.0 上加载的空模组，模块开关真正生效（关掉 = 不注册内容），
 以及一套不会被「BUILD SUCCESSFUL」骗过的判定。细节与命令见 [README.md](README.md)。
 
@@ -178,6 +196,20 @@
    `ç”¨` 这种码点，`processResources` 的 `expand` 之后就成了双编码乱码（jar 里的模组描述会是乱码）。
    含非 ASCII 的项要在 build.gradle 里按 UTF-8 从同一文件重取一次，并给 `processResources` 钉死
    `filteringCharset = 'UTF-8'`。
+
+## M2 踩到的坑
+
+4. **`Item` 的构造函数会向注册表写一个 intrusive holder。** 所以**物品不能在模组构造阶段 new**
+   （注册表那时已经冻结，实测抛 `Registry is already frozen`），必须放在 `RegisterEvent` 的
+   supplier 里创建。狼铠的物品就是因此改成「字段接住、supplier 里 new」的写法。
+5. **`minecraft:generic` 在 `bypasses_armor` 标签里。** 用它测护甲会永远测不出减免
+   （第一版测试就得到「护甲值 5 但伤害没变」的错误结论）。测护甲要用玩家/生物攻击类伤害。
+6. **5 点护甲对 8 点伤害只减 4%**（原版公式 `clamp(armor - damage/(2+tough/4), armor*0.2, 20)/25`），
+   断言阈值不能拍脑袋定成 0.5——那不是「护甲没生效」，是公式本来就这么算。
+7. **`mc-art` 引擎需要 Pillow ≥ 12**（用 `Image.get_flattened_data()`；本机 11.3.0 直接报
+   `'Image' object has no attribute` ），用项目内 venv 解决，别升级全局 Python 环境。
+8. **不要用 Windows PowerShell 的文本重写去改 UTF-8 源码**：`Get-Content -Raw` 会按 GBK 解码、
+   `Set-Content -Encoding UTF8` 会加 BOM，一个中文源码文件当场变成 18 个编译错误。改动一律用编辑器工具。
 
 ## 风险与注意事项
 
