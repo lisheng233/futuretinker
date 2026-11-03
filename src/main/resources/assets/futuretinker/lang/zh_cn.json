@@ -1,4 +1,9 @@
 {
   "itemGroup.futuretinker.wolfarmor": "未来匠魂：狼铠",
-  "itemGroup.futuretinker.spear": "未来匠魂：长矛"
+  "itemGroup.futuretinker.spear": "未来匠魂：长矛",
+
+  "item.futuretinker.wolf_armor": "匠魂狼铠",
+  "item.futuretinker.wolf_armor_plating": "狼铠甲片",
+  "item.futuretinker.wolf_armor_lining": "狼铠内衬",
+  "item.futuretinker.wolf_armor_binding": "狼铠绑定"
 }

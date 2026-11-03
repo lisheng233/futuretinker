@@ -1,0 +1,6 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "futuretinker:item/parts/wolf_armor_lining"
+  }
+}

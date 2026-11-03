@@ -6,17 +6,16 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.RegisterEvent;
 
 /**
  * 匠魂化狼铠（模块一）。
  *
- * <p>M1 只做到「模块可独立启停」：启用时注册一个自己的创造模式标签页作为存在证据，
- * 部件（外层甲片 / 内衬 / 绑定）与装配流程属于 M2、M3。</p>
- *
- * <p>标签页不可省：它让「模块关掉 = 什么都没注册」这条契约在游戏内可被观测
- * （{@code ModuleGateTests} 直接查 {@code BuiltInRegistries.CREATIVE_MODE_TAB}）。</p>
+ * <p>定位是**护甲的变种**：一件 {@code ModifiableArmorItem}，材料强度来自胸甲板材统计，
+ * 装/脱靠狼的护甲槽，装配与修复走匠魂既有流程。部件与护甲的定义、数据形状见
+ * {@link WolfArmorContent}。</p>
  */
 public final class WolfArmorModule implements FtModule {
     public static final String ID = "wolfarmor";
@@ -27,13 +26,28 @@ public final class WolfArmorModule implements FtModule {
     }
 
     @Override
+    public void attach(IEventBus modBus) {
+        // 交互是 forge 总线上的事件；模块被关掉时这个方法根本不会被调用，所以不用再判开关。
+        MinecraftForge.EVENT_BUS.addListener(WolfArmorInteraction::onEntityInteract);
+        FutureTinker.LOGGER.info("Future Tinker: 狼铠护甲定义 id = {}（对应 data/futuretinker/tinkering/tool_definitions/*.json）",
+                WolfArmorContent.armorDefinitionId());
+    }
+
+    @Override
     public void registerRegistries(RegisterEvent event) {
-        if (!Registries.CREATIVE_MODE_TAB.equals(event.getRegistryKey())) {
-            return;
+        // 物品在 RegisterEvent 里创建（Item 构造函数会写注册表，构造阶段注册表已冻结）。
+        WolfArmorContent.registerItems(event);
+        if (Registries.CREATIVE_MODE_TAB.equals(event.getRegistryKey())) {
+            event.register(Registries.CREATIVE_MODE_TAB, FutureTinker.id(ID), () -> CreativeModeTab.builder()
+                    .title(Component.translatable("itemGroup." + FutureTinker.MOD_ID + "." + ID))
+                    .icon(() -> new ItemStack(WolfArmorContent.wolfArmor()))
+                    .displayItems((parameters, output) -> {
+                        output.accept(WolfArmorContent.plating());
+                        output.accept(WolfArmorContent.lining());
+                        output.accept(WolfArmorContent.binding());
+                        output.accept(WolfArmorContent.wolfArmor());
+                    })
+                    .build());
         }
-        event.register(Registries.CREATIVE_MODE_TAB, FutureTinker.id(ID), () -> CreativeModeTab.builder()
-                .title(Component.translatable("itemGroup." + FutureTinker.MOD_ID + "." + ID))
-                .icon(() -> new ItemStack(Items.WOLF_SPAWN_EGG))
-                .build());
     }
 }
