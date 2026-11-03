@@ -1,0 +1,13 @@
+.gradle/
+build/
+run/
+bin/
+out/
+.idea/
+*.iml
+.vscode/
+*.log
+
+# Python 判定的缓存
+__pycache__/
+*.pyc

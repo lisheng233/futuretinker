@@ -1,0 +1,11 @@
+* text=auto
+
+# Windows 脚本必须 CRLF，POSIX 脚本必须 LF（否则在对应平台上根本跑不起来）
+*.bat text eol=crlf
+*.cmd text eol=crlf
+gradlew text eol=lf
+
+# 二进制不要做换行/编码转换
+*.jar binary
+*.png binary
+*.snbt text eol=lf
