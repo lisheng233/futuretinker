@@ -33,6 +33,8 @@ public final class WolfArmorModule implements FtModule {
         MinecraftForge.EVENT_BUS.addListener(WolfArmorInteraction::onEntityInteractSpecific);
         // 死亡掉落：实测默认情况下铠甲会直接消失（见 WolfArmorDrops 注释）。
         MinecraftForge.EVENT_BUS.addListener(WolfArmorDrops::onLivingDrops);
+        // 受击扣耐久：狼不在匠魂护甲的事件路径上，要自己补（见 WolfArmorCombat）。
+        MinecraftForge.EVENT_BUS.addListener(WolfArmorCombat::onLivingHurt);
         FutureTinker.LOGGER.info("Future Tinker: 狼铠护甲定义 id = {}（对应 data/futuretinker/tinkering/tool_definitions/*.json）",
                 WolfArmorContent.armorDefinitionId());
     }
