@@ -1,9 +1,12 @@
 {
   "itemGroup.futuretinker.wolfarmor": "Future Tinker: Wolf Armor",
   "itemGroup.futuretinker.spear": "Future Tinker: Spear",
-
   "item.futuretinker.wolf_armor": "Tinker's Wolf Armor",
   "item.futuretinker.wolf_armor_plating": "Wolf Armor Plating",
   "item.futuretinker.wolf_armor_lining": "Wolf Armor Lining",
-  "item.futuretinker.wolf_armor_binding": "Wolf Armor Binding"
+  "item.futuretinker.wolf_armor_binding": "Wolf Armor Binding",
+  "item.futuretinker.wolf_armor.description": "Armor built for a wolf: right-click a tamed wolf to put it on, sneak-right-click with an empty hand to take it off.",
+  "item.futuretinker.wolf_armor_plating.description": "The plate: armour value and toughness come from its material.",
+  "item.futuretinker.wolf_armor_lining.description": "The lining: carries the material traits.",
+  "item.futuretinker.wolf_armor_binding.description": "The binding: holds the armor together and sets how it repairs."
 }

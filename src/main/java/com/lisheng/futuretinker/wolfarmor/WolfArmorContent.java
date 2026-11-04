@@ -58,7 +58,7 @@ public final class WolfArmorContent {
                 new Item.Properties(), StatlessMaterialStats.MAILLE.getIdentifier()));
         event.register(Registries.ITEM, FutureTinker.id(BINDING_ID), () -> binding = new ToolPartItem(
                 new Item.Properties(), StatlessMaterialStats.BINDING.getIdentifier()));
-        event.register(Registries.ITEM, FutureTinker.id(ARMOR_ID), () -> wolfArmor = new ModifiableArmorItem(
+        event.register(Registries.ITEM, FutureTinker.id(ARMOR_ID), () -> wolfArmor = new WolfArmorItem(
                 ARMOR_MATERIAL, ArmorItem.Type.CHESTPLATE, new Item.Properties().stacksTo(1)));
     }
 
