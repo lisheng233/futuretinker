@@ -30,7 +30,7 @@
     {
       "type": "tconstruct:multiply_stats",
       "multipliers": {
-        "tconstruct:armor": 2.2
+        "tconstruct:armor": 2.0
       }
     },
     {
