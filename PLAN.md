@@ -138,29 +138,39 @@
 | 阶段 | 内容                                 | 产出                         | 状态 |
 | ---- | ------------------------------------ | ---------------------------- | ---- |
 | M1   | 项目骨架、模组元数据、配置系统       | 可加载的空模组，模块开关生效 | ✅ 已完成（见下「M1 完成情况」） |
-| M2   | 狼铠部件注册、装配/修复流程          | 狼铠可制作可使用             | 🚧 进行中：部件/护甲/穿脱/减伤已通；站台配方与修复待做 |
+| M2   | 狼铠部件/护甲/穿脱/减伤/耐久/掉落/配方 | 狼铠可制作可使用             | ✅ 已通（14 条 GameTest）；只剩「客户端观感」一项没在实机确认 |
 | M3   | 狼铠内衬效果与事件逻辑               | 三种以上材料玩法差异可验证   | 未开始 |
 | M4   | 长矛注册与基础攻击                   | 长矛可制作，基础伤害正常     | 未开始 |
 | M5   | 冲锋机制三件套（速度伤害/击落/疲劳） | 核心差异化机制完成           | 未开始 |
 | M6   | 平衡调整、配置细化、文档             | 可发布版本                   | 未开始 |
 
-## M2 进度（狼铠第一刀，已提交）
+## M2 进度（狼铠）
 
 **已通**（每条都有 GameTest 或日志证据）：
 
-- 三个部件注册：`wolf_armor_plating`（胸甲板材统计）/ `wolf_armor_lining`（`tconstruct:maille` 无统计）/
-  `wolf_armor_binding`（`tconstruct:binding` 无统计）。
-- 护甲定义 `futuretinker:wolf_armor_chestplate` 被加载（日志打印 id，测试断言耐久 > 0），
-  数据文件 `data/futuretinker/tinkering/tool_definitions/wolf_armor_chestplate.json`
-  照匠魂板甲的形状写（`part_stats` + `default_materials` + `modifier_slots` defense 2 / upgrades 1）。
-- 穿脱：右键驯服狼穿甲、潜行右键空手脱下（取消事件，避免同时触发坐下）。
-- 减伤：同一次玩家攻击（8 点）打在裸狼 / 穿铁狼铠的狼身上，掉血 8.0 vs 7.68，
-  护甲值 5；按原版公式 5 点护甲对 8 点伤害正好是 4% 减免。
-- 四张 16×16 贴图由 `mc-art` 引擎生成（plan 在 `art/plans/`，依据在 `art/README.md`）。
-- 判定：5 条必需测试全过；`--fault` 仍被抓到。
+- 定位是**护甲的变种**：`ModifiableArmorItem` + `ModifiableArmorMaterial` + 一份护甲定义 JSON，
+  穿在狼的 `EquipmentSlot.CHEST`；`canEquip` 只对 `Wolf` 返回 true（这就是「铠甲穿到玩家身上」的根因修法）。
+- **部件不复用不了匠魂的东西，就都复用匠魂的**：`chestplate_plating` + `maille` + **两块 `large_plate`**。
+  自制部件的紫黑问题（匠魂只为自己的贴图生成 `<贴图>_<材料>` 变体）从构造上消失。
+- 自定义部件的代价：`large_plate` 每块 4 点材料，整套材料消耗翻倍；部件数到 4 触发
+  `ToolBuildingRecipe.requiresAnvil()`，所以狼铠现在要上**匠魂砧**做——「高防御的代价是贵」。
+- 护甲值：`material_stats`（`plating_chestplate` + `maille`）+ `multiply_stats armor 2.0`，
+  即**胸甲板材 × 2**（铁 10 点）。原版 11 点是单材质固定值，不适用于多材料。
+- 站台布局 `station_layouts/wolf_armor.json` 4 格，顺序与 `tool_parts` 一致
+  （`ToolBuildingRecipe.matches` 是按下标比对的，顺序错了静默配不上）。
+- 穿脱：右键驯服/野生狼穿甲（抢在狼的 `mobInteract` 之前并取消事件，否则会坐下）、剪刀取下。
+- 减伤：`LivingDamageEvent` 里按护甲减免后的最终伤害 1:1 扣狼铠耐久，`setAmount(damage - absorbed)`；
+  跳过 `BYPASSES_ARMOR` 与 `WITCH_RESISTANT_TO`；耐久不够只吃剩余。
+- 死亡掉落：恒定 1 份（实测默认是 0）。
+- 书：百科的护甲/工具两章都有条目（位置只是显示问题，不再改）。
+- 图标颜色：灰度遮罩 + `RegisterColorHandlersEvent.Item`（**模组总线**）取
+  `MaterialRenderInfo#vertexColor()`，与匠魂部件同一套材料色。
+- 世界内渲染：`WolfArmorLayer` 复用狼自己的模型，按实体图集把整只再画一遍
+  （头部矩形透明 → 露出真脸；腿/尾/坐下/幼狼缩放自动跟本体）。
+- 判定：14 条必需测试全过；`--fault` 仍被抓到。
 
-**还缺（M2 剩下的）**：匠魂站台布局与部件/护甲的配方 JSON（目前只能用代码构造）、
-修复流程验证、狼死亡掉落策略、世界内渲染（1.20.1 的 `WolfRenderer` 没有护甲层）。
+**还缺**：客户端实机看一眼（颜色、穿在狼身上的观感、砧里 4 格布局）。这三项都能在
+GameTest 之外单独确认，但没有客户端就只能是「代码路径 + 图集证据」。修复流程（用材料修）也还没验证。
 
 ## M1 完成情况（准备工作）
 **交付**：能在 1.20.1 / Forge 47.3.0 上加载的空模组，模块开关真正生效（关掉 = 不注册内容），
@@ -210,6 +220,23 @@
    `'Image' object has no attribute` ），用项目内 venv 解决，别升级全局 Python 环境。
 8. **不要用 Windows PowerShell 的文本重写去改 UTF-8 源码**：`Get-Content -Raw` 会按 GBK 解码、
    `Set-Content -Encoding UTF8` 会加 BOM，一个中文源码文件当场变成 18 个编译错误。改动一律用编辑器工具。
+
+## M2 后半段踩到的坑
+
+9. **`tconstruct:tool_parts` 不能和 `part_stats` 同时用。** 两者都实现 `ToolPartsHook`，而它
+   **不支持 merge**，定义加载当场抛 `IllegalStateException: tconstruct:tool_parts does not support merging`，
+   整个护甲定义变成空定义（护甲值 0、部件数 0，但游戏不崩）。想要「有统计的部件 + 不贡献统计的部件」，
+   正确写法是匠魂 `plate_shield` 那样：`material_stats`（显式 stat_types）+ `tool_parts`（全部部件）。
+10. **`RegisterColorHandlersEvent` / `EntityRenderersEvent.AddLayers` 在模组总线上。**
+   Forge 用 `ModLoader.get().postEvent(...)` 发它们（见 `net.minecraftforge.client.ColorResolverManager`），
+   挂到 `MinecraftForge.EVENT_BUS` 上监听器**一次都不会被调用**，表现就是「改了代码但颜色没变」，
+   而且没有任何日志。判据：翻 Forge 源码里的 `postEvent` 调用点，别靠印象。
+11. **1.20.1 原版狼渲染器没有护甲层。** 世界内要显示铠甲必须自己 `AddLayers` 挂一层；
+   自建模型得逐帧同步 `WolfModel` 的骨骼（腿/尾/坐下/幼狼缩放），所以走「复用本体模型 +
+   一张 64×32 图集」的路子，把「哪里露肉」写成贴图透明像素。图集用 `mc-art` 的
+   `entity --atlas` 判「每个不透明像素都落在 box 矩形内」，再用 `ingame` 渲染一遍看，别只看数字。
+12. **狼的装备槽在客户端靠装备同步包更新。** 服务端 `setItemSlot` 之后渲染层读
+   `wolf.getItemBySlot(EquipmentSlot.CHEST)` 才有东西；这条只在实机可见，GameTest 只能验服务端。
 
 ## 风险与注意事项
 

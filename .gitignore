@@ -14,3 +14,5 @@ __pycache__/
 
 # 美术工作区（venv、参考图、渲染中间产物）；plan 已复制进 art/plans/ 入仓
 .art-work/
+# 参考图从官方 jar 里取，不入仓（版权 + 体积）
+art/refs*/

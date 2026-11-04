@@ -1,12 +1,21 @@
 {
   "modules": [
     {
-      "type": "tconstruct:part_stats",
-      "parts": [
-        "tconstruct:chestplate_plating",
+      "type": "tconstruct:material_stats",
+      "stat_types": [
+        "tconstruct:plating_chestplate",
         "tconstruct:maille"
       ],
       "primary_part": 0
+    },
+    {
+      "type": "tconstruct:tool_parts",
+      "parts": [
+        "tconstruct:chestplate_plating",
+        "tconstruct:maille",
+        "tconstruct:large_plate",
+        "tconstruct:large_plate"
+      ]
     },
     {
       "type": "tconstruct:default_materials",

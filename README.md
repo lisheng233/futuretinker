@@ -33,13 +33,23 @@ futuretinker/
 │   ├── config/FutureTinkerConfig.java   # 模块开关（ForgeConfigSpec + 注册表填充前的提前读取）
 │   ├── module/FtModule.java             # 模块生命周期契约
 │   ├── module/ModuleRegistry.java       # 模块表 + 唯一的开关闸门（RegisterEvent）
-│   ├── wolfarmor/WolfArmorModule.java   # 模块一（M1 只到「可独立启停」）
-│   ├── spear/SpearModule.java           # 模块二（同上）
-│   └── gametest/ModuleGateTests.java    # 判定：闸门是否真的接在配置上
+│   ├── wolfarmor/            # 模块一：狼铠
+│   │   ├── WolfArmorModule.java      # 注册物品 + 接事件 + 客户端入口（DistExecutor）
+│   │   ├── WolfArmorContent.java     # ModifiableArmorMaterial + 物品注册
+│   │   ├── WolfArmorItem.java        # 护甲变种（canEquip 只允许狼）
+│   │   ├── WolfArmorInteraction.java # 右键穿 / 剪刀脱
+│   │   ├── WolfArmorCombat.java      # 用耐久顶掉护甲减免后的伤害
+│   │   ├── WolfArmorDrops.java       # 死亡掉一份
+│   │   ├── WolfArmorClient.java      # 图标按材料上色（模组总线）+ 挂渲染层
+│   │   └── WolfArmorLayer.java       # 狼身上的铠甲渲染（复用狼模型）
+│   ├── spear/SpearModule.java          # 模块二（同上）
+│   └── gametest/                       # 判定：闸门/槽位/穿脱/耐久/减伤/掉落/定义部件
 ├── src/main/resources/
 │   ├── META-INF/mods.toml    # 硬依赖 forge / minecraft / tconstruct / mantle
 │   ├── pack.mcmeta
-│   └── assets/futuretinker/lang/{en_us,zh_cn}.json
+│   ├── assets/futuretinker/  # 物品模型/贴图、实体铠甲贴图、语言、书页
+│   └── data/futuretinker/    # 护甲定义、站台布局、装配配方、标签
+├── art/                      # 贴图与实体图集的生成脚本（mc-art 引擎 + 记录）
 └── tools/verify_gametest.py  # 判定脚本（要求日志证据，不只看退出码）
 ```
 
@@ -96,6 +106,32 @@ FMLCommonSetupEvent                         → 配置已加载
 2. 把 `modules.spear.enabled` 改成 `false` 再跑：同一行变成 `{wolfarmor=true, spear=false}`、
    `启用=[wolfarmor] 关闭=[spear]`，测试仍然通过——因为「spear 的标签页不存在」正是它要求的结果。
 
+## 狼铠（模块一）的形状
+
+一句定义：**它是护甲的变种**，不是新工具。物品是匠魂的 `ModifiableArmorItem`，穿在狼的
+`EquipmentSlot.CHEST` 上（`WolfEquipmentTests` 证明狼的这个槽位真的提供护甲值），
+数据是一份普通的护甲定义 JSON。
+
+| 行为 | 在哪 | 判据 |
+| --- | --- | --- |
+| 4 个部件拼装 | `tool_definitions/wolf_armor_chestplate.json` | `WolfArmorDataTests` 断言部件数 4、其中 2 块是 `tconstruct:large_plate` |
+| 部件/铸造 | 复用匠魂 `chestplate_plating` / `maille` / `large_plate`，不自制 | 不自制就没有「插件部件缺 `<贴图>_<材料>` 变体」的紫黑问题 |
+| 护甲值 | 胸甲板材 × 2（`multiply_stats armor 2.0`） | 铁 = 10 点；原版 11 点是「只有一种材质」的固定值，这里按材料换算 |
+| 站台布局 | `station_layouts/wolf_armor.json`（4 个格子，顺序与部件一致） | `ToolBuildingRecipe.matches` 是**按下标**比对部件，顺序写错就配不上 |
+| 在哪做 | 匠魂砧（`ToolBuildingRecipe.requiresAnvil()`：部件 ≥ 4 就要砧） | 2 块大板的「贵」在这里兑现 |
+| 右键穿 / 剪刀脱 | `WolfArmorInteraction`（`EntityInteract` + `EntityInteractSpecific`） | 狼的 `mobInteract` 会先吃掉右键（坐下），所以必须抢占并取消事件 |
+| 不会穿到玩家身上 | `WolfArmorItem.canEquip` 只对 `Wolf` 返回 true | `WolfArmorInteractionTests` 断言玩家装备失败 |
+| 挡伤害 | `WolfArmorCombat`：`LivingDamageEvent` 里按 1:1 扣耐久、`setAmount(damage - absorbed)` | 跳过 `BYPASSES_ARMOR` 与 `WITCH_RESISTANT_TO`；耐久不够只吃剩下的 |
+| 死亡掉落 | `WolfArmorDrops`：恒定 1 份 | 实测默认掉落为 0（狼不是玩家/盔甲架，装备直接消失） |
+| 图标颜色 | `WolfArmorClient`：`RegisterColorHandlersEvent.Item`（**模组总线**） | 取 `MaterialRenderInfo#vertexColor()`，与匠魂部件同一套色 |
+| 世界内渲染 | `WolfArmorLayer`：复用狼模型 + 实体贴图，整只再画一遍 | 贴图里头部矩形透明，所以露出真脸；腿/尾巴/坐下/幼狼缩放自动跟本体 |
+
+**渲染为什么要「再画一遍狼」**：1.20.1 原版没有狼铠模型可抄，自建模型的骨骼要和
+`WolfModel` 逐帧同步（腿、尾巴、坐下、幼狼缩放），错一帧就是穿模。复用本体模型 + 一张
+64×32 图集，把「铠甲像素不透明、露肉处透明」交给贴图，动画就免费了。图集由
+`art/wolf_armor_atlas.py` 按原版 `WolfModel` 的 UV 矩形生成，`mc-art` 的 `entity --atlas`
+判过「每个不透明像素都落在某个 box 矩形内」。
+
 ## 已验证 / 未验证
 
 **已验证（有命令与日志）**
@@ -103,21 +139,29 @@ FMLCommonSetupEvent                         → 配置已加载
 - `gradlew build` 退出码 0；产物 `build/libs/futuretinker-0.1.0.jar` 里 `mods.toml` 的占位符
   已展开、中文描述是合法 UTF-8、`pack.mcmeta` 的 `pack_format=15`。
 - `libs/` 里的匠魂/Mantle jar 经 `flatDir` + `fg.deobf` 正确解析，deobf 产物存在。
-- `python tools/verify_gametest.py` 通过（3 条必需测试全过，日志有批次计数，退出码 0）。
-- `--fault` 时判定失败（`1 required tests failed :( `，gradle 退出码 1，脚本判定「故障被抓住」）。
+- `python tools/verify_gametest.py` 通过：**14 条必需测试全过**，日志有批次计数，退出码 0。
+- `python tools/verify_gametest.py --fault` 下判定失败（`1 required tests failed :(`，
+  gradle 退出码 1，脚本判「注入的故障被抓住」），证明这套检查会说不。
 - 模组加载期崩溃/编译失败时脚本判定「没跑到测试」（退出码 2），不会误读成通过。
 - 模块开关端到端：开→标签页存在，关→标签页不存在，两次运行都通过各自的断言。
-- **狼的护甲槽生效**（狼铠「护甲变种」方案的前提）：`WolfEquipmentTests.chestSlotGivesWolfArmorValue`
-  证明裸狼护甲值为 0、往 `EquipmentSlot.CHEST` 放铁胸甲后护甲值 > 0 且槽位保存住了物品。
+- **狼的护甲槽生效**：`WolfEquipmentTests.chestSlotGivesWolfArmorValue` 证明裸狼护甲值 0、
+  放入铁胸甲后 > 0 且槽位保存住了物品。
+- **狼铠的护甲值随材料**：`WolfArmorDurabilityTests` / `WolfArmorEquipTests` 用铁材料造出的
+  狼铠，护甲值断言通过（胸甲 5 × 2 = 10）。
+- **部件数真的是 4（含 2 块大板）**：`WolfArmorDataTests.wolfArmorRequiresTwoLargePlates`
+  读运行期的护甲定义，断言 4 个部件、其中 2 块 `tconstruct:large_plate`。
+  这条会失败的原因写进断言消息里：少写一块大板不会报错，只是变便宜。
+- **受击掉匠魂耐久**：`WolfArmorDurabilityTests` 打 8 点伤害后 `Damage` 值上升。
+- **死亡必掉一份**：`WolfArmorDropTests`。
+- **右键穿 / 剪刀脱 / 野生狼也能穿**：`WolfArmorInteractionTests`（走事件路径，不是直接写槽位）。
 
 **未验证（别当成已验证）**
 
-- 没有启动过客户端（`runClient`），没有实际进游戏看界面/创造标签页的样子。
-- 匠魂 API 还没有被真正调用过（M1 不注册匠魂内容）；编译期能否用上具体 API 要到 M2 才知道。
-- 匠魂自己的护甲减伤流水线对非玩家是否生效——要等有了真的可改造狼铠才能测（PLAN 里写了判据）。
-- 狼铠的世界内渲染、死亡掉落策略、右键穿戴交互都还没做。
+- **没有启动过客户端**：图标颜色与世界内渲染是本次新做的两块，代码路径正确（事件总线、
+  图集矩形、`mc-art ingame` 渲染都核过），但**没有在真客户端里看过一眼**。
 - 没有在真实整合包环境（几十个模组、Tinkers' Tools / Dreamtinker 共存）里跑过。
-- 没有验证「关掉模块后存档/配方不残留引用」——M1 没有内容，这条要到 M2 才有意义。
+- 匠魂砧的界面里，4 格布局的实际观感（格子位置/是否被滚动条挤）没看过。
+- 没有验证「关掉模块后存档/配方不残留引用」。
 
 ## 后续（M2 起）
 

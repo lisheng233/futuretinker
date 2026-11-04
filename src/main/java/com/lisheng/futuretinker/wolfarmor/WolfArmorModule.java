@@ -35,9 +35,9 @@ public final class WolfArmorModule implements FtModule {
         MinecraftForge.EVENT_BUS.addListener(WolfArmorDrops::onLivingDrops);
         // 受击：用狼铠耐久顶掉护甲减免后的非魔法伤害（见 WolfArmorCombat）。
         MinecraftForge.EVENT_BUS.addListener(WolfArmorCombat::onLivingDamage);
-        // 客户端：狼铠图标按材料颜色上色（服务器端不会加载这个类）
+        // 客户端：图标按材料上色 + 穿在狼身上的渲染层（服务器端不会加载这个类）
         net.minecraftforge.fml.DistExecutor.unsafeRunWhenOn(
-                net.minecraftforge.api.distmarker.Dist.CLIENT, () -> WolfArmorClient::register);
+                net.minecraftforge.api.distmarker.Dist.CLIENT, () -> () -> WolfArmorClient.register(modBus));
         FutureTinker.LOGGER.info("Future Tinker: 狼铠护甲定义 id = {}（对应 data/futuretinker/tinkering/tool_definitions/*.json）",
                 WolfArmorContent.armorDefinitionId());
     }
