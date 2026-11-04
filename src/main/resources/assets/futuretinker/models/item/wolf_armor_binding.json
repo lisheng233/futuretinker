@@ -1,7 +1,6 @@
 {
-  "parent": "forge:item/default",
-  "loader": "tconstruct:material",
+  "parent": "item/generated",
   "textures": {
-    "texture": "futuretinker:item/parts/wolf_armor_binding"
+    "layer0": "futuretinker:item/parts/wolf_armor_binding"
   }
 }
