@@ -124,13 +124,20 @@ FMLCommonSetupEvent                         → 配置已加载
 | 挡伤害 | `WolfArmorCombat`：`LivingDamageEvent` 里按 1:1 扣耐久、`setAmount(damage - absorbed)` | 跳过 `BYPASSES_ARMOR` 与 `WITCH_RESISTANT_TO`；耐久不够只吃剩下的 |
 | 死亡掉落 | `WolfArmorDrops`：恒定 1 份 | 实测默认掉落为 0（狼不是玩家/盔甲架，装备直接消失） |
 | 图标颜色 | `WolfArmorClient`：`RegisterColorHandlersEvent.Item`（**模组总线**） | 取 `MaterialRenderInfo#vertexColor()`，与匠魂部件同一套色 |
-| 世界内渲染 | `WolfArmorLayer`：复用狼模型 + 实体贴图，整只再画一遍 | 贴图里头部矩形透明，所以露出真脸；腿/尾巴/坐下/幼狼缩放自动跟本体 |
+| 世界内渲染 | `WolfArmorLayer` + `WolfArmorModel`：狼骨骼**逐箱放大**一圈 + 实体图集 | 背/肚子/腿内外侧都包住；腿/尾巴/坐下/幼狼缩放由同一组动画参数复现 |
 
 **渲染为什么要「再画一遍狼」**：1.20.1 原版没有狼铠模型可抄，自建模型的骨骼要和
-`WolfModel` 逐帧同步（腿、尾巴、坐下、幼狼缩放），错一帧就是穿模。复用本体模型 + 一张
-64×32 图集，把「铠甲像素不透明、露肉处透明」交给贴图，动画就免费了。图集由
-`art/wolf_armor_atlas.py` 按原版 `WolfModel` 的 UV 矩形生成，`mc-art` 的 `entity --atlas`
-判过「每个不透明像素都落在某个 box 矩形内」。
+`WolfModel` 逐帧同步（腿、尾巴、坐下、幼狼缩放），错一帧就是穿模。做法是把狼的骨骼抄一份、
+每个箱子用 `CubeDeformation` 向外长 0.4～0.75 像素，再把**同一组动画参数**喂给它
+（`prepareMobModel` + `setupAnim`），姿态自动一致；「哪里露肉」交给贴图透明像素（头部全透明）。
+图集由 `art/wolf_armor_atlas.py` 按原版 `WolfModel` 的 UV 矩形生成，`mc-art` 的
+`entity --atlas` 判过「每个不透明像素都落在某个 box 矩形内」。
+
+**为什么不能直接 `poseStack.scale` 放大**：缩放绕一个点做。绕脚底放大时，模型 y 轴朝下
+（`LivingEntityRenderer` 做了 `scale(-1,-1,1)`），上半身会往世界里侧缩，背就露出来；
+绕躯干中心放大时，两条腿的**内侧面朝远离身体的方向**移动，腿内侧照样露狼皮。
+实测第一版（`scale(1.01)`）就是这个症状：狼背和腿内侧的毛从头盔边缘露出来。
+逐箱 inflate 才是「每个面都向外长」，一个方向都不漏。
 
 ## 已验证 / 未验证
 

@@ -232,9 +232,12 @@ GameTest 之外单独确认，但没有客户端就只能是「代码路径 + �
    挂到 `MinecraftForge.EVENT_BUS` 上监听器**一次都不会被调用**，表现就是「改了代码但颜色没变」，
    而且没有任何日志。判据：翻 Forge 源码里的 `postEvent` 调用点，别靠印象。
 11. **1.20.1 原版狼渲染器没有护甲层。** 世界内要显示铠甲必须自己 `AddLayers` 挂一层；
-   自建模型得逐帧同步 `WolfModel` 的骨骼（腿/尾/坐下/幼狼缩放），所以走「复用本体模型 +
-   一张 64×32 图集」的路子，把「哪里露肉」写成贴图透明像素。图集用 `mc-art` 的
-   `entity --atlas` 判「每个不透明像素都落在 box 矩形内」，再用 `ingame` 渲染一遍看，别只看数字。
+   而**整体 `poseStack.scale` 放大是错的**：模型 y 轴朝下（`scale(-1,-1,1)`），绕脚底放大让上半身
+    缩进体内（背露出），绕躯干中心放大让腿的内侧面朝*远离*身体的方向移动（腿内侧露出）——
+    实机第一版就是这个症状。正确做法是逐箱 `CubeDeformation` 向外长（`WolfArmorModel`），
+    动画用同一组参数喂 `prepareMobModel`/`setupAnim` 复现（骨骼字段是私有的，抄不到）。
+    图集用 `mc-art` 的 `entity --atlas` 判「每个不透明像素都落在 box 矩形内」，再用 `ingame`
+    渲染一遍看，别只看数字。
 12. **狼的装备槽在客户端靠装备同步包更新。** 服务端 `setItemSlot` 之后渲染层读
    `wolf.getItemBySlot(EquipmentSlot.CHEST)` 才有东西；这条只在实机可见，GameTest 只能验服务端。
 

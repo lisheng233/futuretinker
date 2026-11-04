@@ -29,6 +29,7 @@ public final class WolfArmorClient {
 
     public static void register(IEventBus modBus) {
         modBus.addListener(WolfArmorClient::onRegisterColors);
+        modBus.addListener(WolfArmorClient::onRegisterLayerDefinitions);
         modBus.addListener(WolfArmorClient::onAddLayers);
     }
 
@@ -60,13 +61,18 @@ public final class WolfArmorClient {
         FutureTinker.LOGGER.info("Future Tinker: 狼铠图标颜色处理器已注册（模组总线）");
     }
 
+    private static void onRegisterLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
+        // 放大一圈的狼骨骼，见 WolfArmorModel
+        event.registerLayerDefinition(WolfArmorModel.LAYER, WolfArmorModel::createLayer);
+    }
+
     private static void onAddLayers(EntityRenderersEvent.AddLayers event) {
         WolfRenderer renderer = event.getRenderer(EntityType.WOLF);
         if (renderer == null) {
             FutureTinker.LOGGER.warn("Future Tinker: 没找到 WolfRenderer，狼铠不会显示在狼身上");
             return;
         }
-        renderer.addLayer(new WolfArmorLayer(renderer));
+        renderer.addLayer(new WolfArmorLayer(renderer, event.getEntityModels()));
         FutureTinker.LOGGER.info("Future Tinker: 狼铠渲染层已挂到 WolfRenderer");
     }
 }

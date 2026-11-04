@@ -76,13 +76,16 @@ python -m mc_art list-groups --source <1.21.4 client.jar> --extract minecraft:it
 ## 实体铠甲图集（64×32，穿在狼身上）
 
 `wolf_armor_atlas.py` 生成 `.../textures/entity/wolf_armor.png`。它不是「另画一只狼」，
-而是**同一张 UV 上的第二层皮**：游戏里用狼自己的 `WolfModel` 画，铠甲像素不透明、露肉处透明，
-所以头部那几块矩形全留空（露出真脸），只铺 body / upper_body / 四条腿 / 尾巴。
+而是**同一张 UV 上的第二层皮**：游戏里用一套「逐箱放大」的狼骨骼画（`WolfArmorModel`），
+铠甲像素不透明、露肉处透明，所以头部那几块矩形全留空（露出真脸），只铺
+body / upper_body / 四条腿 / 尾巴。放大不改变 UV，只是把同一批矩形撑大一点，图集不用改。
 
 - UV 矩形不是猜的：从 1.20.1 的 `WolfModel` 反编译源里逐个 `m_171481_(u,v,x,y,z,w,h,d)` 抄出来，
   写成 `.art-work/wolfarmor/wolf_model.json`，再用 `mc-art ingame` 拿**原版狼贴图**渲染一遍——
   渲染出来是一只正常的狼，说明矩形对上了；`entity --atlas` 报 `99.7% covered, 3 stray`
   （3 stray 是原版狼贴图自带的已知杂点）。
+- 放大版另存 `wolf_armor_model.json`（`inflate` 0.75 / 腿 0.4），拿它再跑一次 `entity --atlas`
+  仍是 `100% covered, 0 stray`——说明「放大」没有把贴图挪出采样区。
 - 颜色是灰度色阶：颜色由游戏用材料色乘上去（`MaterialRenderInfo#vertexColor()`），
   图集自己带色会变成「双重上色」。
 - 明暗只留三档（MID/LIGHT/SHADE）+ 深色描边；2 像素宽的腿试过纵向条纹，渲染出来像糖果棒，
