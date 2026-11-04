@@ -17,11 +17,7 @@ import net.minecraftforge.gametest.PrefixGameTestTemplate;
 public final class WolfArmorDataTests {
     private WolfArmorDataTests() {}
 
-    private static final List<String> EXPECTED_RECIPES = List.of(
-            "tools/building/wolf_armor",
-            "tools/parts/builder/wolf_armor_plating",
-            "tools/parts/builder/wolf_armor_lining",
-            "tools/parts/builder/wolf_armor_binding");
+    private static final List<String> EXPECTED_RECIPES = List.of("tools/building/wolf_armor");
 
     @PrefixGameTestTemplate(false)
     @GameTest(templateNamespace = FutureTinker.MOD_ID, template = "empty3x3x3", required = true)

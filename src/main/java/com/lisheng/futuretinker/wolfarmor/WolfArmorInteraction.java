@@ -8,49 +8,35 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 
 /**
- * 狼铠的穿/脱交互（事件路径）。
+ * 狼铠的**脱甲**路径：与原版一致，用**剪刀**取下。
  *
- * <p>为什么必须走事件而不是只靠物品的 {@code interactLivingEntity}：驯服的狼在
- * {@code Wolf#mobInteract} 里会**自己吃掉右键**（坐下/起立并返回 SUCCESS），
- * 而 Forge 的物品交互钩子只在实体交互返回 PASS 之后才会被调用——所以对驯服的狼，
- * 物品钩子永远收不到这次点击（这是实测现象「右键没反应，狼只是坐下了」的解释）。
- * 事件在 {@code mobInteract} 之前派发，取消它就能抢占。</p>
- *
- * <p>两条事件都要监听：真客户端点实体派发 {@code EntityInteractSpecific}，
- * 服务端交互派发 {@code EntityInteract}。</p>
- *
- * <p>每一条都打日志（{@code latest.log} 里搜 {@code [wolfarmor]}）：玩家实测时
- * 日志会直接告诉我们是哪条路径跑到了、狼是否驯服、手上拿的是什么。</p>
+ * <p>穿甲由 {@link WolfArmorItem} 处理（照原版马铠）；空手时
+ * {@code interactLivingEntity} 不会被调用（没有物品），且驯服的狼会先吃掉右键，
+ * 所以脱甲由事件兜底。两条事件都要监听：真客户端点实体派发 {@code EntityInteractSpecific}。</p>
  */
 public final class WolfArmorInteraction {
     private WolfArmorInteraction() {}
 
     public static void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
-        handle("EntityInteract", event.getTarget(), event.getEntity(), event.getItemStack(),
+        handle(event.getTarget(), event.getEntity(), event.getItemStack(),
                 event::setCancellationResult, () -> event.setCanceled(true));
     }
 
     public static void onEntityInteractSpecific(PlayerInteractEvent.EntityInteractSpecific event) {
-        handle("EntityInteractSpecific", event.getTarget(), event.getEntity(), event.getItemStack(),
+        handle(event.getTarget(), event.getEntity(), event.getItemStack(),
                 event::setCancellationResult, () -> event.setCanceled(true));
     }
 
-    private static void handle(String path, Entity target, Player player, ItemStack held,
+    private static void handle(Entity target, Player player, ItemStack held,
             Consumer<InteractionResult> setResult, Runnable cancel) {
-        if (!(target instanceof Wolf wolf)) {
+        if (!(target instanceof Wolf wolf) || player.level().isClientSide()) {
             return;
         }
-        if (player.level().isClientSide()) {
-            return;
-        }
-        com.lisheng.futuretinker.FutureTinker.LOGGER.info(
-                "[wolfarmor] 交互 path={} wolfTamed={} held={} 狼当前铠甲={}",
-                path, wolf.isTame(), held.getItem(), wolf.getItemBySlot(EquipmentSlot.CHEST));
-
-        // 1) 手上拿着狼铠：穿上（原版马铠也不要求先驯服，这里不设门槛）
+        // 1) 手上拿着狼铠：穿上（抢在 Wolf#mobInteract 之前，并取消事件，否则狼会坐下）
         if (WolfArmorContent.isWolfArmor(held)) {
             ItemStack current = wolf.getItemBySlot(EquipmentSlot.CHEST);
             if (!current.isEmpty()) {
@@ -67,8 +53,8 @@ public final class WolfArmorInteraction {
             return;
         }
 
-        // 2) 潜行 + 空手：脱下
-        if (held.isEmpty() && player.isShiftKeyDown()
+        // 2) 剪刀：取下（原版行为）
+        if (held.is(Items.SHEARS)
                 && WolfArmorContent.isWolfArmor(wolf.getItemBySlot(EquipmentSlot.CHEST))) {
             ItemStack removed = wolf.getItemBySlot(EquipmentSlot.CHEST);
             wolf.setItemSlot(EquipmentSlot.CHEST, ItemStack.EMPTY);

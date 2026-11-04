@@ -110,18 +110,17 @@ public final class WolfArmorInteractionTests {
     /** 潜行 + 空手右键：脱回玩家背包（空手时物品交互不会被调用，走事件兜底）。 */
     @PrefixGameTestTemplate(false)
     @GameTest(templateNamespace = FutureTinker.MOD_ID, template = "empty3x3x3", required = true)
-    public static void sneakEmptyHandUnequips(GameTestHelper helper) {
+    public static void shearsUnequip(GameTestHelper helper) {
         Player player = helper.makeMockPlayer();
         Wolf wolf = tamedWolf(helper);
         ItemStack armor = ironWolfArmor();
         wolf.setItemSlot(EquipmentSlot.CHEST, armor.copy());
 
-        player.setShiftKeyDown(true);
-        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(net.minecraft.world.item.Items.SHEARS));
         MinecraftForge.EVENT_BUS.post(new PlayerInteractEvent.EntityInteractSpecific(
                 player, InteractionHand.MAIN_HAND, wolf, new Vec3(0.5D, 0.5D, 0.5D)));
 
-        helper.assertTrue(wolf.getItemBySlot(EquipmentSlot.CHEST).isEmpty(), "潜行右键没有脱下狼铠");
+        helper.assertTrue(wolf.getItemBySlot(EquipmentSlot.CHEST).isEmpty(), "用剪刀右键没有脱下狼铠");
         helper.assertTrue(player.getInventory().contains(armor), "脱下来的铠甲没有回到玩家背包");
         helper.succeed();
     }

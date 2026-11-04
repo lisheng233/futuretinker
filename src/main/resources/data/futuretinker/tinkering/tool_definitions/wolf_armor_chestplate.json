@@ -3,9 +3,8 @@
     {
       "type": "tconstruct:part_stats",
       "parts": [
-        "futuretinker:wolf_armor_plating",
-        "futuretinker:wolf_armor_lining",
-        "futuretinker:wolf_armor_binding"
+        "tconstruct:chestplate_plating",
+        "tconstruct:maille"
       ],
       "primary_part": 0
     },
@@ -25,15 +24,14 @@
             "max": 2,
             "min": 1
           }
-        },
-        {
-          "type": "tconstruct:random",
-          "tier": {
-            "max": 2,
-            "min": 1
-          }
         }
       ]
+    },
+    {
+      "type": "tconstruct:multiply_stats",
+      "multipliers": {
+        "tconstruct:armor": 2.2
+      }
     },
     {
       "type": "tconstruct:modifier_slots",

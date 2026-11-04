@@ -1,27 +1,32 @@
 package com.lisheng.futuretinker.wolfarmor;
 
+import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import slimeknights.tconstruct.library.tools.helper.ToolDamageUtil;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 
 /**
- * 狼铠的受击行为：**挨打要掉匠魂耐久**，不是只当原版护甲点数用。
+ * 狼铠的受击行为：**用自身耐久顶伤害**（与原版 1.20.5+ 的狼铠一致）。
  *
- * <p>用户实测指出：狼穿着狼铠被打，狼铠耐久一点不掉，只有原版护甲减免。
- * 匠魂自己的护甲是「两点都算」：护甲值参与原版减免，同时每次受击扣工具耐久
- * （{@link ToolDamageUtil}）。玩家身上的护甲由匠魂自己的事件处理，狼不在那条路径上，
- * 所以这里替狼补上。</p>
+ * <p>原版行为：狼铠给狼 11 点护甲值，并消耗自身耐久抵消大多数非魔法伤害。所以这里在
+ * {@link LivingDamageEvent}（护甲减免之后的最终伤害）里：</p>
+ * <ol>
+ *   <li>魔法伤害、绕过护甲的伤害不管（原版也不吃）；</li>
+ *   <li>按 1:1 用狼铠耐久吃掉这段伤害（耐久不够就吃到碎，剩余伤害照常落到狼身上）；</li>
+ *   <li>吃掉多少就把事件伤害减掉多少——全吃掉时事件伤害归零。</li>
+ * </ol>
  *
- * <p>耐久消耗按伤害的 1/4（至少 1 点），与匠魂护甲的量级一致；护甲的
- * {@code unbreakable}/{@code reinforced} 等强化由 {@link ToolDamageUtil} 自己处理。</p>
+ * <p>选 {@code LivingDamageEvent} 而不是 {@code LivingHurtEvent}：后者在护甲减免之前，
+ * 拿到的不是「经过护甲削减的物理伤害」，按它扣耐久会扣多。</p>
  */
 public final class WolfArmorCombat {
     private WolfArmorCombat() {}
 
-    public static void onLivingHurt(LivingHurtEvent event) {
+    public static void onLivingDamage(LivingDamageEvent event) {
         if (!(event.getEntity() instanceof Wolf wolf)) {
             return;
         }
@@ -32,11 +37,26 @@ public final class WolfArmorCombat {
         if (!WolfArmorContent.isWolfArmor(armor)) {
             return;
         }
+        DamageSource source = event.getSource();
+        // 非魔法伤害才由铠甲承担（原版狼铠同样不挡魔法/绕过护甲的伤害）
+        if (source.is(DamageTypeTags.BYPASSES_ARMOR) || source.is(DamageTypeTags.WITCH_RESISTANT_TO)) {
+            return;
+        }
         ToolStack tool = ToolStack.from(armor);
         if (tool.isBroken()) {
             return;
         }
-        int durabilityDamage = Math.max(1, (int) Math.ceil(event.getAmount() / 4.0F));
-        ToolDamageUtil.damage(tool, durabilityDamage, wolf, armor);
+
+        int damage = (int) Math.ceil(event.getAmount());
+        if (damage <= 0) {
+            return;
+        }
+        int remainingDurability = Math.max(0, armor.getMaxDamage() - armor.getDamageValue());
+        int absorbed = Math.min(damage, remainingDurability);
+        if (absorbed <= 0) {
+            return;
+        }
+        ToolDamageUtil.damage(tool, absorbed, wolf, armor);
+        event.setAmount(event.getAmount() - absorbed);
     }
 }
