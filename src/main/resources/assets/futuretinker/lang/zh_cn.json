@@ -2,14 +2,7 @@
   "itemGroup.futuretinker.wolfarmor": "未来匠魂：狼铠",
   "itemGroup.futuretinker.spear": "未来匠魂：长矛",
   "item.futuretinker.wolf_armor": "匠魂狼铠",
-  "item.futuretinker.wolf_armor_plating": "狼铠甲片",
-  "item.futuretinker.wolf_armor_lining": "狼铠内衬",
-  "item.futuretinker.wolf_armor_binding": "狼铠绑定",
-  "item.futuretinker.wolf_armor.description": "给狼穿的护甲：拿着它右键已驯服的狼即可穿上，潜行时空手右键可以脱下。",
-  "item.futuretinker.wolf_armor_plating.description": "甲片：护甲值与韧性来自它的材料。",
-  "item.futuretinker.wolf_armor_lining.description": "内衬：承载材料的特性。",
-  "item.futuretinker.wolf_armor_binding.description": "绑定：固定整件护甲，并决定修复方式。",
-  "pattern.futuretinker.wolf_armor_plating": "狼铠甲片",
-  "pattern.futuretinker.wolf_armor_lining": "狼铠内衬",
-  "pattern.futuretinker.wolf_armor_binding": "狼铠绑定"
+  "item.futuretinker.wolf_armor.description": "给狼穿的护甲：拿着它右键已驯服的狼即可穿上，剪刀可以取下。",
+  "item.futuretinker.spear": "匠魂长矛",
+  "item.futuretinker.spear.description": "按住右键把矛压低进入冲锋：和目标的相对速度越快，伤害越高；够快还能把骑手挑下坐骑。戳刺能打到 4.5 格，但打不了 2 格以内的目标。"
 }

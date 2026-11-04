@@ -1,0 +1,18 @@
+{
+  "loader": "tconstruct:tool",
+  "parent": "tconstruct:item/base/tall",
+  "textures": {
+    "head": "tconstruct:item/tool/javelin/head",
+    "guard": "tconstruct:item/tool/javelin/guard",
+    "handle": "tconstruct:item/tool/javelin/handle",
+    "grip": "tconstruct:item/tool/javelin/grip"
+  },
+  "large": true,
+  "large_offset": [-2, 2],
+  "parts": [
+    { "name": "handle", "index": 1 },
+    { "name": "grip", "index": 3 },
+    { "name": "head", "index": 0 },
+    { "name": "guard", "index": 2 }
+  ]
+}
