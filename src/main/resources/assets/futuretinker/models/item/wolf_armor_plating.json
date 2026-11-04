@@ -1,6 +1,7 @@
 {
-  "parent": "item/generated",
+  "parent": "forge:item/default",
+  "loader": "tconstruct:material",
   "textures": {
-    "layer0": "futuretinker:item/parts/wolf_armor_plating"
+    "texture": "futuretinker:item/parts/wolf_armor_plating"
   }
 }
