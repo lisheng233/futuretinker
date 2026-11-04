@@ -49,6 +49,9 @@ EXIT_TESTS_FAILED = 1
 EXIT_NOT_REACHED = 2
 EXIT_INCONSISTENT = 3
 EXIT_FAULT_NOT_CAUGHT = 4
+# 测试通过，但 build/libs 里的 jar 比源码旧：交付物过期。
+# （runGameTestServer 只编译类，不重建 jar；踩过一次，玩家拿旧包测了半天。）
+EXIT_STALE_JAR = 5
 
 
 def decode(raw: bytes) -> str:
@@ -139,6 +142,7 @@ def main() -> int:
     parser.add_argument("--fault", action="store_true", help="注入故障：预期判定失败")
     parser.add_argument("--timeout", type=int, default=1800, help="子进程超时（秒）")
     parser.add_argument("--tail", type=int, default=25, help="失败时额外打印的日志行数")
+    parser.add_argument("--no-jar-check", action="store_true", help="跳过 jar 新鲜度检查")
     args = parser.parse_args()
 
     project = Path(args.project).resolve()
@@ -184,8 +188,41 @@ def main() -> int:
         print("[verify] 判定: 失败")
         return EXIT_TESTS_FAILED
 
+    if args.no_jar_check:
+        print("[verify] 判定: 通过（跳过 jar 新鲜度检查）")
+        return EXIT_OK
+
+    stale = stale_jar(project)
+    if stale is not None:
+        print(f"[verify] 判定: 通过，但**交付物是旧的**——{stale}")
+        print("[verify] 跑一下 gradlew build 再交付（runGameTestServer 不会重建 jar）")
+        return EXIT_STALE_JAR
+
     print("[verify] 判定: 通过")
     return EXIT_OK
+
+
+def stale_jar(project: Path):
+    """jar 比任何源码/资源旧就是过期交付物。返回说明文字，或 None。"""
+    libs = project / "build" / "libs"
+    jars = sorted(libs.glob("*.jar")) if libs.is_dir() else []
+    if not jars:
+        return "build/libs 下没有 jar（先跑 gradlew build）"
+    jar = max(jars, key=lambda p: p.stat().st_mtime)
+    jar_time = jar.stat().st_mtime
+    newest = None
+    for folder in ("src",):
+        for path in (project / folder).rglob("*"):
+            if path.is_file():
+                t = path.stat().st_mtime
+                if newest is None or t > newest[0]:
+                    newest = (t, path)
+    if newest is None:
+        return None
+    if newest[0] > jar_time:
+        rel = newest[1].relative_to(project)
+        return f"jar {jar.name} 比 {rel} 旧（jar={time.strftime('%H:%M:%S', time.localtime(jar_time))}, 源码={time.strftime('%H:%M:%S', time.localtime(newest[0]))}）"
+    return None
 
 
 if __name__ == "__main__":

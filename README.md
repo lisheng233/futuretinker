@@ -64,7 +64,10 @@ Windows 上 Python 通常叫 `python` 或 `py -3`（`python3` 往往是 0 字节
 
 - 必须出现 `Running test batch '...' (N tests)...`，否则判定为「没跑到测试」（退出码 2）；
 - 必须出现 `All N required tests passed :)` 或 `N required tests failed :(`；
-- 日志与 gradle 退出码必须自洽，否则报「证据自相矛盾」。
+- 日志与 gradle 退出码必须自洽，否则报「证据自相矛盾」；
+- **交付物新鲜度**：`build/libs/*.jar` 必须比 `src/` 下任何文件都新，否则退出码 **5**。
+  `runGameTestServer` 只编译类、**不重建 jar**，踩过一次——有人拿旧包测了半天，以为代码没改。
+  所以交付前要么跑 `gradlew build`，要么让判定脚本替你挡住（`--no-jar-check` 可跳过）。
 
 ## 模块开关怎么生效（这条有实测依据）
 
