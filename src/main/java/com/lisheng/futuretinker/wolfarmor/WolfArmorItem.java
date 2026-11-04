@@ -32,7 +32,7 @@ public final class WolfArmorItem extends ModifiableArmorItem {
         super(material, type, properties);
     }
 
-    /** 马铠式交互：只对驯服的狼生效。 */
+    /** 马铠式交互（物品钩子）。注意：驯服的狼会先吃掉右键，所以真机上主要靠事件路径。 */
     @Override
     public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity target,
             InteractionHand hand) {
@@ -42,7 +42,9 @@ public final class WolfArmorItem extends ModifiableArmorItem {
         if (player.level().isClientSide()) {
             return InteractionResult.SUCCESS;
         }
-        if (stack.isEmpty() || !wolf.isTame()) {
+        com.lisheng.futuretinker.FutureTinker.LOGGER.info(
+                "[wolfarmor] 物品交互 interactLivingEntity wolfTamed={} held={}", wolf.isTame(), stack.getItem());
+        if (stack.isEmpty()) {
             return InteractionResult.PASS;
         }
 

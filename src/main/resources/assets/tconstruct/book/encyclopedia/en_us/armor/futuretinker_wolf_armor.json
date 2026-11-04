@@ -2,10 +2,10 @@
   "tool": "futuretinker:wolf_armor",
   "text": [
     {
-      "text": "Armor for a wolf, built from Tinkers' materials. Three parts: the plating decides armour and toughness, the lining carries the material traits, and the binding holds it together."
+      "text": "Armor for a wolf, built from Tinkers materials. The plating decides armour and toughness, the lining carries the material traits, and the binding holds it together."
     },
     {
-      "text": "Right-click a tamed wolf with the armor to put it on, and sneak-right-click with an empty hand to take it off. The wolf keeps it in its own chest slot, so it survives save and reload.",
+      "text": "Right-click a wolf with the armor to put it on (works on wild wolves too, like horse armor); sneak-right-click with an empty hand to take it off.",
       "paragraph": true
     }
   ],

@@ -33,6 +33,26 @@ import slimeknights.tconstruct.library.tools.nbt.MaterialNBT;
 public final class WolfArmorInteractionTests {
     private WolfArmorInteractionTests() {}
 
+    /** 事件路径（驯服的狼会自己吃掉右键，所以真机上走的是这条）。 */
+    @PrefixGameTestTemplate(false)
+    @GameTest(templateNamespace = FutureTinker.MOD_ID, template = "empty3x3x3", required = true)
+    public static void eventPathEquipsWolf(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer();
+        Wolf wolf = tamedWolf(helper);
+        player.setItemInHand(InteractionHand.MAIN_HAND, ironWolfArmor());
+
+        PlayerInteractEvent.EntityInteractSpecific event = new PlayerInteractEvent.EntityInteractSpecific(
+                player, InteractionHand.MAIN_HAND, wolf, new Vec3(0.5D, 0.5D, 0.5D));
+        MinecraftForge.EVENT_BUS.post(event);
+
+        helper.assertTrue(event.isCanceled(), "事件没有被取消：狼会自己坐下，铠甲穿不上");
+        helper.assertTrue(WolfArmorContent.isWolfArmor(wolf.getItemBySlot(EquipmentSlot.CHEST)),
+                "事件路径没有把铠甲装到狼身上");
+        helper.assertTrue(player.getItemBySlot(EquipmentSlot.CHEST).isEmpty(),
+                "铠甲跑到了玩家胸甲位");
+        helper.succeed();
+    }
+
     /** 核心 bug 的回归断言：玩家永远穿不上它。 */
     @PrefixGameTestTemplate(false)
     @GameTest(templateNamespace = FutureTinker.MOD_ID, template = "empty3x3x3", required = true)
@@ -69,10 +89,10 @@ public final class WolfArmorInteractionTests {
         helper.succeed();
     }
 
-    /** 野狼不穿。 */
+    /** 野狼也能穿（原版马铠对任何马都可用，不要求先驯服），但绝不能穿到玩家身上。 */
     @PrefixGameTestTemplate(false)
     @GameTest(templateNamespace = FutureTinker.MOD_ID, template = "empty3x3x3", required = true)
-    public static void untamedWolfStaysNaked(GameTestHelper helper) {
+    public static void untamedWolfCanBeArmoredButPlayerNever(GameTestHelper helper) {
         Player player = helper.makeMockPlayer();
         Wolf wolf = helper.spawn(EntityType.WOLF, new BlockPos(1, 1, 1));
         ItemStack armor = ironWolfArmor();
@@ -80,9 +100,10 @@ public final class WolfArmorInteractionTests {
 
         armor.getItem().interactLivingEntity(armor, player, wolf, InteractionHand.MAIN_HAND);
 
-        helper.assertTrue(wolf.getItemBySlot(EquipmentSlot.CHEST).isEmpty(), "野狼不该被穿上狼铠");
+        helper.assertTrue(WolfArmorContent.isWolfArmor(wolf.getItemBySlot(EquipmentSlot.CHEST)),
+                "野狼没有被穿上狼铠（马铠对任何马都可用，这里也不该有驯服门槛）");
         helper.assertTrue(player.getItemBySlot(EquipmentSlot.CHEST).isEmpty(),
-                "野狼那次交互把狼铠穿到了玩家身上");
+                "狼铠被穿到了玩家身上");
         helper.succeed();
     }
 
