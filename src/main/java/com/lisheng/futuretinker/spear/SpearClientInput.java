@@ -26,13 +26,16 @@ import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 public final class SpearClientInput {
     private static int startTick = -1;
     private static int releasedTicks;
+    /** 时长走满结束之后，必须松手再按才能开始下一次（原版就是这样）。 */
+    private static boolean requireRelease;
 
     private SpearClientInput() {}
 
     public static void startCharge() {
         Minecraft minecraft = Minecraft.getInstance();
         Player player = minecraft.player;
-        if (player == null || startTick >= 0 || !SpearContent.isSpear(player.getMainHandItem())) {
+        if (player == null || startTick >= 0 || requireRelease
+                || !SpearContent.isSpear(player.getMainHandItem())) {
             return;
         }
         startTick = player.tickCount;
@@ -41,10 +44,17 @@ public final class SpearClientInput {
     }
 
     public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END || startTick < 0) {
+        if (event.phase != TickEvent.Phase.END) {
             return;
         }
         Minecraft minecraft = Minecraft.getInstance();
+        if (startTick < 0) {
+            // 松手之后才允许下一次冲锋
+            if (!minecraft.options.keyUse.isDown()) {
+                requireRelease = false;
+            }
+            return;
+        }
         Player player = minecraft.player;
         if (player == null) {
             stopCharge();
@@ -56,7 +66,8 @@ public final class SpearClientInput {
             return;
         }
         if (player.tickCount - startTick >= SpearCharge.timings(ToolStack.from(stack)).total()) {
-            // 压满一轮：原版长矛这时会自己收起，不需要玩家松手
+            // 压满一轮：原版长矛这时会自己收起，而且要松手才能再来一次
+            requireRelease = true;
             stopCharge();
             return;
         }

@@ -19,6 +19,7 @@ import slimeknights.tconstruct.library.materials.definition.MaterialVariant;
 import slimeknights.tconstruct.library.materials.stats.IMaterialStats;
 import slimeknights.tconstruct.library.materials.stats.MaterialStatsId;
 import slimeknights.tconstruct.library.tools.helper.ToolDamageUtil;
+import slimeknights.tconstruct.library.tools.stat.ToolStats;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
 import slimeknights.tconstruct.library.tools.nbt.MaterialNBT;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
@@ -106,12 +107,13 @@ public final class SpearCharge {
      */
     public static Timings timings(IToolStackView tool) {
         int tier = headTier(tool);
-        float factor = Mth.clamp(1.0F + handleDurabilityBonus(tool), 0.75F, 1.5F);
+        // 阶段长短由**攻击速度**决定：越快越早结束（原版矛的节奏也是跟攻速走的）
+        float factor = Mth.clamp(attackSpeed(tool), 0.5F, 2.0F);
         return new Timings(
                 Math.max(1, Math.round((8.0F - tier) / factor)),
-                Math.round(50.0F * factor),
-                Math.round(70.0F * factor),
-                Math.round(90.0F * factor));
+                Math.round(50.0F / factor),
+                Math.round(70.0F / factor),
+                Math.round(90.0F / factor));
     }
 
     /** 伤害倍率：矛头等级 + 矛头攻击力。原版是 0.7（木）~1.2（下界合金）。 */
@@ -132,9 +134,14 @@ public final class SpearCharge {
         return attackerSpeed >= KNOCKBACK_SPEED;
     }
 
-    /** 原版公式：1（空手拳伤）+ 倍率 × 相对速度。 */
-    public static float damage(float multiplier, float relativeSpeed) {
-        return 1.0F + multiplier * relativeSpeed;
+    /**
+     * 冲锋伤害 = 1（空手拳伤）+ 倍率 × 水平相对速度 + 0.25 × 矛头攻击力。
+     *
+     * <p>最后那项是「攻击力作为次要变量」：原版只看速度，但整件工具的攻击力完全不影响冲锋
+     * 说不过去，所以给一个很小的权重（铁矛头约 +0.5~1 点）。</p>
+     */
+    public static float damage(float multiplier, float headAttack, float relativeSpeed) {
+        return 1.0F + 0.25F * headAttack + multiplier * relativeSpeed;
     }
 
     /** 压在阶段表上：没激活 → engaged → tired → disengaged → 结束。 */
@@ -227,36 +234,44 @@ public final class SpearCharge {
         }
 
         Vec3 eye = player.getEyePosition();
-        Vec3 look = player.getLookAngle();
-        AABB area = player.getBoundingBox().inflate(MAX_REACH);
+        Vec3 look = horizontal(player.getLookAngle());
+        AABB area = player.getBoundingBox().inflate(MAX_REACH, 4.0D, MAX_REACH);
         List<LivingEntity> candidates = player.level().getEntitiesOfClass(
                 LivingEntity.class, area, entity -> entity != player && entity.isAlive());
         if (candidates.isEmpty()) {
             return;
         }
 
-        float attackerSpeed = speed(player);
+        float attackerSpeed = horizontalSpeed(player);
         float multiplier = multiplier(tool);
         float dismount = dismountSpeed(tool);
         int now = (int) player.level().getGameTime();
 
         for (LivingEntity target : candidates) {
-            Vec3 offset = target.getBoundingBox().getCenter().subtract(eye);
+            // 水平判定：不要求 y 坐标一致（飞在高处也能捅到），只看水平距离与朝向锥
+            Vec3 offset = horizontal(target.getBoundingBox().getCenter().subtract(eye));
             double distance = offset.length();
             if (distance < MIN_REACH || distance > MAX_REACH) {
+                continue;
+            }
+            if (offset.lengthSqr() < 1.0E-4D) {
                 continue;
             }
             if (look.dot(offset.normalize()) < CONE_COS) {
                 continue;
             }
+            if (Math.abs(target.getY() - player.getY()) > 3.0D) {
+                continue;
+            }
             if (isOnCooldown(player, target, now)) {
                 continue;
             }
-            float relativeSpeed = speed(player, target);
+            float relativeSpeed = relativeSpeed(player, target);
             if (!canDamage(relativeSpeed)) {
                 continue;
             }
-            if (!target.hurt(player.damageSources().playerAttack(player), damage(multiplier, relativeSpeed))) {
+            if (!target.hurt(player.damageSources().playerAttack(player),
+                    damage(multiplier, headAttack(tool), relativeSpeed))) {
                 continue;
             }
             rememberHit(player, target, now);
@@ -275,14 +290,26 @@ public final class SpearCharge {
 
     // ===== 工具方法 =====
 
-    /** 实体速度，格/秒（{@code getDeltaMovement()} 是格/tick）。 */
-    private static float speed(LivingEntity entity) {
-        return (float) entity.getDeltaMovement().length() * 20.0F;
+    private static Vec3 horizontal(Vec3 vector) {
+        return new Vec3(vector.x, 0.0D, vector.z);
     }
 
-    /** 双方的相对速度，格/秒。原版就是拿这个乘倍率。 */
-    private static float speed(LivingEntity attacker, LivingEntity target) {
-        return (float) attacker.getDeltaMovement().subtract(target.getDeltaMovement()).length() * 20.0F;
+    /** 水平速度，格/秒（{@code getDeltaMovement()} 是格/tick）。原版算冲锋速度时不看 y 分量。 */
+    private static float horizontalSpeed(LivingEntity entity) {
+        Vec3 movement = entity.getDeltaMovement();
+        return (float) Math.sqrt(movement.x * movement.x + movement.z * movement.z) * 20.0F;
+    }
+
+    /** 双方的水平相对速度，格/秒。 */
+    private static float relativeSpeed(LivingEntity attacker, LivingEntity target) {
+        Vec3 delta = attacker.getDeltaMovement().subtract(target.getDeltaMovement());
+        return (float) Math.sqrt(delta.x * delta.x + delta.z * delta.z) * 20.0F;
+    }
+
+    /** 工具的攻击速度（阶段时长由它决定）。 */
+    private static float attackSpeed(IToolStackView tool) {
+        Object value = tool.getStats().get(ToolStats.ATTACK_SPEED);
+        return value instanceof Number number ? number.floatValue() : 1.0F;
     }
 
     private static boolean isOnCooldown(Player player, LivingEntity target, int now) {

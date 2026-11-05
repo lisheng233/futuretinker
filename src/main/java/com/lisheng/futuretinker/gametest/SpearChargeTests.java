@@ -64,10 +64,10 @@ public final class SpearChargeTests {
     @GameTest(templateNamespace = FutureTinker.MOD_ID, template = "empty3x3x3", required = true)
     public static void damageAndSpeedGatesMatchVanilla(GameTestHelper helper) {
         // 原版公式：1 + 倍率 × 相对速度（格/秒）；铁矛倍率约 0.95，冲刺速度 5.612 → 约 6.3
-        float damage = SpearCharge.damage(0.95F, 5.612F);
-        helper.assertTrue(Math.abs(damage - 6.33F) < 0.02F,
-                "冲锋伤害公式不对：期望约 6.33，实际 " + damage);
-        helper.assertTrue(SpearCharge.damage(0.95F, 10.0F) > SpearCharge.damage(0.95F, 5.0F),
+        float damage = SpearCharge.damage(0.95F, 4.0F, 5.612F);
+        helper.assertTrue(Math.abs(damage - 7.0F) < 0.35F,
+                "冲锋伤害公式不对：期望约 7.0（1 + 0.25×4 攻击力 + 0.95×5.612），实际 " + damage);
+        helper.assertTrue(SpearCharge.damage(0.95F, 4.0F, 10.0F) > SpearCharge.damage(0.95F, 4.0F, 5.0F),
                 "伤害没有随相对速度增加");
         helper.assertTrue(SpearCharge.canDamage(4.6F) && !SpearCharge.canDamage(4.59F),
                 "伤害速度门槛不是 4.6 格/秒");
