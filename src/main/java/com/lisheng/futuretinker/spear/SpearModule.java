@@ -40,6 +40,8 @@ public final class SpearModule implements FtModule {
         MinecraftForge.EVENT_BUS.addListener(SpearAttack::onCritical);
         MinecraftForge.EVENT_BUS.addListener(SpearAttack::onLeftClickBlock);
         MinecraftForge.EVENT_BUS.addListener(SpearAttack::onLeftClickEmpty);
+        // 冲锋计时：不走原版的「使用物品」，由服务端自己每 tick 推进
+        MinecraftForge.EVENT_BUS.addListener(SpearCharge::onServerTick);
         // 客户端：矛头/长矛图标按材料上色（服务器端不会加载这个类）
         net.minecraftforge.fml.DistExecutor.unsafeRunWhenOn(
                 net.minecraftforge.api.distmarker.Dist.CLIENT, () -> () -> SpearClient.register(modBus));

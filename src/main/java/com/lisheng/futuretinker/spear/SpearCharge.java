@@ -13,6 +13,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.event.TickEvent;
 import slimeknights.tconstruct.library.materials.MaterialRegistry;
 import slimeknights.tconstruct.library.materials.definition.MaterialVariant;
 import slimeknights.tconstruct.library.materials.stats.IMaterialStats;
@@ -66,6 +67,15 @@ public final class SpearCharge {
 
     /** 每个玩家对每个目标的上一次命中的游戏刻。WeakHashMap：玩家下线即可回收。 */
     private static final Map<Player, Map<UUID, Integer>> LAST_HITS = new WeakHashMap<>();
+
+    /**
+     * 正在冲锋的玩家 → 已经压低了几个 tick。
+     *
+     * <p>为什么不用原版的「使用物品」状态：{@code isUsingItem()} 会让
+     * {@code LocalPlayer.aiStep} 把移动输入乘 0.2（跑不动），还会触发三叉戟的压低动画。
+     * 冲锋要能边跑边压，所以这里自己记时间。</p>
+     */
+    private static final Map<Player, Integer> CHARGING = new WeakHashMap<>();
 
     /** 冲锋的三个阶段，外加「还没激活」。 */
     public enum Stage {
@@ -147,18 +157,68 @@ public final class SpearCharge {
         return Stage.IDLE;
     }
 
-    // ===== 每 tick 的结算（只在服务端调用） =====
+    // ===== 冲锋的开始 / 结束 / 每 tick 推进（只在服务端调用） =====
+
+    /** 右键：开始压低（已经在冲锋就忽略）。 */
+    public static void start(Player player) {
+        if (player == null || player.isSpectator()) {
+            return;
+        }
+        ItemStack stack = player.getMainHandItem();
+        if (!SpearContent.isSpear(stack) || ToolStack.from(stack).isBroken()) {
+            return;
+        }
+        if (CHARGING.containsKey(player)) {
+            return;
+        }
+        CHARGING.put(player, 0);
+        SpearModule.playLowerSound(player);
+    }
+
+    /** 松手 / 掉手 / 死亡：结束冲锋。 */
+    public static void stop(Player player) {
+        if (player != null) {
+            CHARGING.remove(player);
+        }
+    }
+
+    public static boolean isCharging(Player player) {
+        return player != null && CHARGING.containsKey(player);
+    }
+
+    /** 已经压低了多少 tick（不在冲锋时返回 0）。 */
+    public static int heldTicks(Player player) {
+        Integer ticks = CHARGING.get(player);
+        return ticks == null ? 0 : ticks;
+    }
+
+    /** 服务端每 tick 推进所有正在冲锋的玩家。 */
+    public static void onServerTick(TickEvent.ServerTickEvent event) {
+        if (event.phase != TickEvent.Phase.END || CHARGING.isEmpty()) {
+            return;
+        }
+        for (Player player : List.copyOf(CHARGING.keySet())) {
+            ItemStack stack = player.getMainHandItem();
+            if (!player.isAlive() || !SpearContent.isSpear(stack)) {
+                stop(player);
+                continue;
+            }
+            int ticks = heldTicks(player) + 1;
+            CHARGING.put(player, ticks);
+            tick(player, stack, ticks);
+        }
+    }
 
     public static void tick(Player player, ItemStack stack, int heldTicks) {
         ToolStack tool = ToolStack.from(stack);
         if (tool.isBroken()) {
-            player.stopUsingItem();
+            stop(player);
             return;
         }
         Timings timings = timings(tool);
         if (heldTicks >= timings.total()) {
             // 三个阶段走完 = 这一轮冲锋结束，必须松手重来
-            player.stopUsingItem();
+            stop(player);
             return;
         }
         Stage stage = stageAt(timings, heldTicks);

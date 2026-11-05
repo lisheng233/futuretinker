@@ -27,6 +27,39 @@ import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 public final class SpearChargeTests {
     private SpearChargeTests() {}
 
+    /**
+     * 冲锋**不进原版的「使用物品」状态**——这是「右键之后跑不动」的根因：
+     * {@code LocalPlayer.aiStep} 在 {@code isUsingItem()} 时把移动输入乘 0.2、并且禁止疾跑，
+     * 而原版长矛冲锋恰恰是要能边跑边压的。（顺带也就不会套用三叉戟那套压低动画。）
+     */
+    @PrefixGameTestTemplate(false)
+    @GameTest(templateNamespace = FutureTinker.MOD_ID, template = "empty3x3x3", required = true)
+    public static void chargeDoesNotUseTheItemSystem(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer();
+        player.setItemInHand(InteractionHand.MAIN_HAND, SpearTestSupport.ironSpear());
+
+        SpearCharge.start(player);
+        helper.assertTrue(SpearCharge.isCharging(player), "右键没有进入冲锋状态");
+        helper.assertTrue(!player.isUsingItem(),
+                "冲锋进了原版的「使用物品」状态：那会让移动输入乘 0.2 并禁止疾跑（右键之后跑不动）");
+        helper.assertTrue(SpearCharge.heldTicks(player) == 0, "刚开始冲锋就有时长");
+
+        SpearCharge.stop(player);
+        helper.assertTrue(!SpearCharge.isCharging(player), "松手之后还在冲锋");
+        helper.succeed();
+    }
+
+    /** 没有矛的时候不能开始冲锋（否则空手右键也进状态）。 */
+    @PrefixGameTestTemplate(false)
+    @GameTest(templateNamespace = FutureTinker.MOD_ID, template = "empty3x3x3", required = true)
+    public static void chargeNeedsASpearInHand(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer();
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        SpearCharge.start(player);
+        helper.assertTrue(!SpearCharge.isCharging(player), "空手也开始了冲锋");
+        helper.succeed();
+    }
+
     @PrefixGameTestTemplate(false)
     @GameTest(templateNamespace = FutureTinker.MOD_ID, template = "empty3x3x3", required = true)
     public static void damageAndSpeedGatesMatchVanilla(GameTestHelper helper) {

@@ -1,6 +1,6 @@
 {
   "request": {
-    "query": "spear head part: cone outline, hollow middle",
+    "query": "spear head part: solid cone",
     "form": "item",
     "name": "spear_part",
     "namespace": "futuretinker",
@@ -13,8 +13,8 @@
     "pack_format": 15
   },
   "descriptor": {
-    "target": "Outline of a spear head (a 2D cone projection) with a hollow middle, tinted by the part material.",
-    "semantic": "Outline of a spear head (a 2D cone projection) with a hollow middle, tinted by the part material.",
+    "target": "Solid spear head (a 2D cone projection), tinted by the part material.",
+    "semantic": "Solid spear head (a 2D cone projection), tinted by the part material.",
     "visual_identity": [
       "16x16 transparent-background item sprite",
       "neutral grey ramp so the game can tint it with the material colour"
@@ -22,7 +22,7 @@
     "parts": [
       {
         "id": "shape",
-        "meaning": "Outline of a spear head (a 2D cone projection) with a hollow middle, tinted by the part material.",
+        "meaning": "Solid spear head (a 2D cone projection), tinted by the part material.",
         "required": true,
         "paint_only": false,
         "layer": 0,
@@ -53,7 +53,7 @@
     "parts": [
       {
         "id": "shape",
-        "meaning": "Outline of a spear head (a 2D cone projection) with a hollow middle, tinted by the part material.",
+        "meaning": "Solid spear head (a 2D cone projection), tinted by the part material.",
         "required": true,
         "paint_only": false,
         "layer": 0,
@@ -80,16 +80,16 @@
             "................",
             ".......X........",
             ".......X........",
-            "......X.X.......",
-            "......X.X.......",
-            "......X.X.......",
-            ".....X...X......",
-            ".....X...X......",
-            "....X.....X.....",
-            "....X.....X.....",
-            "....X.....X.....",
-            "...X.......X....",
-            "...X.......X....",
+            "......XXX.......",
+            "......XXX.......",
+            "......XXX.......",
+            ".....XXXXX......",
+            ".....XXXXX......",
+            "....XXXXXXX.....",
+            "....XXXXXXX.....",
+            "....XXXXXXX.....",
+            "...XXXXXXXXX....",
+            "...XXXXXXXXX....",
             "..XXXXXXXXXXX...",
             "................",
             "................"

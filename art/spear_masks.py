@@ -56,10 +56,16 @@ def dist_to_segment(px, py, a, b):
     return math.hypot(px - (a[0] + t * dx), py - (a[1] + t * dy))
 
 
-def mask(predicate):
+def mask(predicate, size=W):
+    """Rasterise a 16x16-space predicate at `size` resolution (size=64 keeps the same shape, finer edges)."""
     rows = []
-    for y in range(H):
-        rows.append("".join("X" if predicate(x + 0.5, y + 0.5) else "." for x in range(W)))
+    for y in range(size):
+        row = []
+        for x in range(size):
+            px = (x + 0.5) * W / size
+            py = (y + 0.5) * H / size
+            row.append("X" if predicate(px, py) else ".")
+        rows.append("".join(row))
     return rows
 
 
@@ -112,15 +118,15 @@ RED_SAND = ["#B2601F", "#BF6721", "#CB6E24", "#D2752B", "#D97B30"]
 
 
 def sprite_plan(name, query, semantic, rows, palette, colors, outline_width=0,
-                outline_color="#1E1E1E", shape_edit_mode="new_silhouette", waiver=None):
+                outline_color="#1E1E1E", shape_edit_mode="new_silhouette", waiver=None, size=W):
     return {
         "request": {
             "query": query,
             "form": "item",
             "name": name,
             "namespace": "futuretinker",
-            "width": W,
-            "height": H,
+            "width": size,
+            "height": size,
             "novelty": 0.3,
             "target_path": None,
             "shape_policy": "planned",
@@ -157,8 +163,8 @@ def sprite_plan(name, query, semantic, rows, palette, colors, outline_width=0,
             "layer": "unknown",
         },
         "geometry": {
-            "width": W,
-            "height": H,
+            "width": size,
+            "height": size,
             "parts": [{
                 "id": "shape",
                 "meaning": semantic,
@@ -219,9 +225,9 @@ def main():
     plans = {}
 
     plans["gen_spear_part"] = sprite_plan(
-        "spear_part", "spear head part: cone outline, hollow middle",
-        "Outline of a spear head (a 2D cone projection) with a hollow middle, tinted by the part material.",
-        ring(upright_cone), STEEL, list(STEEL.keys()))
+        "spear_part", "spear head part: solid cone",
+        "Solid spear head (a 2D cone projection), tinted by the part material.",
+        mask(upright_cone), STEEL, list(STEEL.keys()))
 
     plans["gen_spear_part_pattern"] = sprite_plan(
         "spear_part_pattern", "spear head pattern button: flat dark cone outline",
@@ -235,17 +241,17 @@ def main():
     plans["gen_spear_tool_head"] = sprite_plan(
         "spear_tool_head", "spear tool icon: cone head at the top right",
         "The cone head of the spear tool icon, tinted by the head material.",
-        mask(head_layer), tool_palette, tool_colors)
+        mask(head_layer, 64), tool_palette, tool_colors, size=64)
 
     plans["gen_spear_tool_shaft"] = sprite_plan(
         "spear_tool_shaft", "spear tool icon: diagonal shaft",
         "The diagonal shaft of the spear tool icon, tinted by the handle material.",
-        mask(shaft_layer), tool_palette, tool_colors)
+        mask(shaft_layer, 64), tool_palette, tool_colors, size=64)
 
     plans["gen_spear_tool_binding"] = sprite_plan(
         "spear_tool_binding", "spear tool icon: binding band at the head joint",
         "The binding band of the spear tool icon, tinted by the binding material.",
-        mask(binding_layer), tool_palette, tool_colors)
+        mask(binding_layer, 64), tool_palette, tool_colors, size=64)
 
     for suffix, palette in (("gold", GOLD), ("sand", SAND), ("red_sand", RED_SAND)):
         named = {f"c{i}": value for i, value in enumerate(palette)}

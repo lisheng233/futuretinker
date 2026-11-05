@@ -157,13 +157,22 @@ FMLCommonSetupEvent                         → 配置已加载
 
 **图标**（全部 `mc-art` 渲染，plan 由 `art/spear_masks.py` 生成，形状是「圆锥的二维投影」）：
 
-- 矛头部件与部件台的 pattern 按钮：**只画轮廓，中间透明**（1px 环）；
-- 矛本体：`item/generated` 三层贴图 = 矛头 / 矛杆 / 绑定结，三层各自 tintindex 0/1/2，
-  分别上「矛头材料 / 手柄材料 / 绑定结材料」的颜色——一根矛能同时有三种材料色。
+- 矛头**物品**图标：实心圆锥（做出来的东西是实心的）；
+- 部件台的 pattern 按钮、以及三种铸模：**中间透明**——铸模是「整块料挖出矛头形状的洞」，
+  pattern 按钮是 1px 轮廓环（这两处按 GUI/铸模的规矩来）；
+- 矛本体：`item/generated` 三层贴图 = 矛头 / 矛杆 / 绑定结，**64×64**，
+  三层各自 tintindex 0/1/2，分别上「矛头材料 / 手柄材料 / 绑定结材料」的颜色。
+  父模型是 `item/handheld`，所以拿在手上是工具姿势（不是图标姿势）。
 
-**为什么不用匠魂的 `tconstruct:tool` 模型**：那个模型会为每张贴图找 `<贴图>_<材料>` 变体，
-而变体是匠魂为自己的工具贴图生成的，插件指向的贴图没有变体 → 手里/地上是紫黑格。
-平铺多层模型 + 染色绕开了这条查找，所以不会紫黑。
+**姿势与动画**（1.20.1 没有物品动画接口，所以用「模型 override + display 变换」做）：
+
+- 冲锋**不进原版的「使用物品」状态**：`isUsingItem()` 会让 `LocalPlayer.aiStep` 把移动输入
+  乘 0.2 并禁止疾跑——原版长矛冲锋要能边跑边压，所以右键只发一个「开始冲锋」包，
+  松手发「结束冲锋」，计时在服务端走。顺带也就不会套用三叉戟那套压低动画。
+- 压低/旋转：客户端自己记「压了多少 tick」，注册成物品 predicate `futuretinker:spear_charge`，
+  模型按 1/3/6 tick 三个阈值换成三份 `display` 不同的子模型（越压越低、越往前）。
+- 戳刺前冲：用 `LivingEntity#getAttackAnim` 当 predicate（`futuretinker:spear_attack`），
+  挥击期间前冲一下——这是 1.20.1 能做的近似，不是原版那种专门的刺击动画。
 
 **百科条目**：匠魂百科的工具页是**按标签自动生成**的（`tconstruct:load_tools` + 语言文件），
 不是手写页面清单。所以矛进了 `tconstruct:modifiable/small`，文案在
@@ -173,6 +182,9 @@ FMLCommonSetupEvent                         → 配置已加载
 **创造模式**：所有模块共用一个标签页「未来匠魂」（`futuretinker:main`）。标签页由模块表在
 物品注册完之后统一建，模块只把自己启用的物品交上去——关掉一个模块，标签页里就没有它的东西；
 全关掉时标签页本身也不注册。
+
+**工匠砧里的样例**：站台布局的 `icon` 改成用具体材料（铁/木/铁）显示的同一件矛，
+不再用 `ui_render#*` 占位材料（那样会显示成一块白图，和旁边的匠魂工具格格不入）。
 
 | 行为 | 实现在哪 | 判据（GameTest） |
 | --- | --- | --- |
@@ -215,7 +227,7 @@ FMLCommonSetupEvent                         → 配置已加载
 - `gradlew build` 退出码 0；产物 `build/libs/futuretinker-0.1.0.jar` 里 `mods.toml` 的占位符
   已展开、中文描述是合法 UTF-8、`pack.mcmeta` 的 `pack_format=15`。
 - `libs/` 里的匠魂/Mantle jar 经 `flatDir` + `fg.deobf` 正确解析，deobf 产物存在。
-- `python tools/verify_gametest.py` 通过：**30 条必需测试全过**，日志有批次计数，退出码 0。
+- `python tools/verify_gametest.py` 通过：**32 条必需测试全过**，日志有批次计数，退出码 0。
 - `python tools/verify_gametest.py --fault` 下判定失败（`1 required tests failed :(`，
   gradle 退出码 1，脚本判「注入的故障被抓住」），证明这套检查会说不。
 - 模组加载期崩溃/编译失败时脚本判定「没跑到测试」（退出码 2），不会误读成通过。

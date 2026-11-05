@@ -1,8 +1,14 @@
 {
-  "parent": "item/generated",
+  "parent": "item/handheld",
   "textures": {
     "layer0": "futuretinker:item/spear_head_layer",
     "layer1": "futuretinker:item/spear_shaft_layer",
     "layer2": "futuretinker:item/spear_binding_layer"
-  }
+  },
+  "overrides": [
+    { "predicate": { "futuretinker:spear_charge": 1.0 }, "model": "futuretinker:item/spear_charge_1" },
+    { "predicate": { "futuretinker:spear_charge": 3.0 }, "model": "futuretinker:item/spear_charge_2" },
+    { "predicate": { "futuretinker:spear_charge": 6.0 }, "model": "futuretinker:item/spear_charge_3" },
+    { "predicate": { "futuretinker:spear_attack": 0.35 }, "model": "futuretinker:item/spear_attack" }
+  ]
 }

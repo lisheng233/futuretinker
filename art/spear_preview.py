@@ -5,6 +5,7 @@ import pathlib
 from PIL import Image
 
 ART = pathlib.Path("art/out")
+SCALE = 3
 
 
 def load(name):
@@ -26,22 +27,19 @@ IRON = (213, 213, 213)
 WOOD = (150, 108, 74)
 BINDING = (176, 130, 96)
 
-spear = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+spear = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
 spear.alpha_composite(tint(load("gen_spear_tool_head"), IRON))
 spear.alpha_composite(tint(load("gen_spear_tool_shaft"), WOOD))
 spear.alpha_composite(tint(load("gen_spear_tool_binding"), BINDING))
 
-part = tint(load("gen_spear_part"), IRON)
-
-tiles = [("spear", spear), ("part", part),
+tiles = [("spear", spear), ("part", tint(load("gen_spear_part"), IRON)),
          ("cast gold", load("gen_spear_cast_gold")),
          ("cast sand", load("gen_spear_cast_sand")),
          ("cast red sand", load("gen_spear_cast_red_sand")),
          ("pattern", load("gen_spear_part_pattern"))]
 
-scale = 12
-canvas = Image.new("RGBA", ((16 * scale + 12) * len(tiles), 16 * scale + 8), (24, 24, 28, 255))
+canvas = Image.new("RGBA", ((64 * SCALE + 12) * len(tiles), 64 * SCALE + 8), (24, 24, 28, 255))
 for index, (_, image) in enumerate(tiles):
-    canvas.alpha_composite(image.resize((16 * scale, 16 * scale), Image.NEAREST), (index * (16 * scale + 12), 4))
+    canvas.alpha_composite(image.resize((64 * SCALE, 64 * SCALE), Image.NEAREST), (index * (64 * SCALE + 12), 4))
 canvas.save("art/out/spear_preview.png")
 print("art/out/spear_preview.png", [name for name, _ in tiles])
