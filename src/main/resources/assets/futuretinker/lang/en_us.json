@@ -9,5 +9,7 @@
   "item.futuretinker.spear_head_cast": "Spear Head Gold Cast",
   "item.futuretinker.spear_head_sand_cast": "Spear Head Sand Cast",
   "item.futuretinker.spear_head_red_sand_cast": "Spear Head Red Sand Cast",
-  "pattern.futuretinker.spear_head": "Spear Head"
+  "pattern.futuretinker.spear_head": "Spear Head",
+  "material.futuretinker.charge": "Charge coefficient: %s",
+  "material.futuretinker.charge.description": "How much of the charge damage comes from speed."
 }

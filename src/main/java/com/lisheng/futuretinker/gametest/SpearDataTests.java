@@ -1,6 +1,8 @@
 package com.lisheng.futuretinker.gametest;
 
 import com.lisheng.futuretinker.FutureTinker;
+import com.lisheng.futuretinker.spear.ChargeMaterialStats;
+import com.lisheng.futuretinker.spear.SpearCharge;
 import com.lisheng.futuretinker.spear.SpearContent;
 import java.util.List;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -8,13 +10,18 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import net.minecraftforge.registries.ForgeRegistries;
+import slimeknights.tconstruct.library.materials.MaterialRegistry;
+import slimeknights.tconstruct.library.materials.definition.MaterialId;
 import slimeknights.tconstruct.library.tools.definition.ToolDefinition;
 import slimeknights.tconstruct.library.tools.definition.ToolDefinitionLoader;
 import slimeknights.tconstruct.library.tools.definition.module.material.ToolPartsHook;
 import slimeknights.tconstruct.library.tools.part.IToolPart;
+import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.library.tools.part.PartCastItem;
 
 /**
@@ -93,6 +100,34 @@ public final class SpearDataTests {
      * 都会在「小工具」章节里生成一页（语言文件 {@code tools/small/<ns>_<path>.json} 提供文案）。
      * 所以「书里有没有矛」这件事，判据就是这条标签 + 那个语言文件。
      */
+
+    /**
+     * 矛头的「冲刺系数」是一条真的材料统计：材料可以声明 {@code futuretinker:charge}，
+     * 没声明的（其它模组添加的材料）拿到默认值 1.0，矛照样能用。
+     */
+    @PrefixGameTestTemplate(false)
+    @GameTest(templateNamespace = FutureTinker.MOD_ID, template = "empty3x3x3", required = true)
+    public static void chargeCoefficientIsAMaterialStat(GameTestHelper helper) {
+        // 匠魂的 getMaterialStats 对「材料没声明这条统计」的情况返回 empty（默认值在别处兜底），
+        // 所以这里直接断言：铁（没数据）走默认系数，倍率仍在原版区间。
+        var stats = MaterialRegistry.getInstance().getMaterialStats(new MaterialId("tconstruct:iron"),
+                ChargeMaterialStats.ID);
+        float value = stats.map(stat -> ((ChargeMaterialStats) stat).charge())
+                .orElse(ChargeMaterialStats.DEFAULT_CHARGE);
+        helper.assertTrue(Math.abs(value - ChargeMaterialStats.DEFAULT_CHARGE) < 1.0E-4F,
+                "没声明这条统计的材料应该走默认值 " + ChargeMaterialStats.DEFAULT_CHARGE + "，实际 " + value);
+        helper.assertTrue("futuretinker:charge".equals(ChargeMaterialStats.TYPE.getId().toString())
+                        || ChargeMaterialStats.ID.toString().equals("futuretinker:charge"),
+                "冲刺系数的材料统计 id 不对： " + ChargeMaterialStats.ID);
+
+        Player player = helper.makeMockPlayer();
+        player.setItemInHand(InteractionHand.MAIN_HAND, SpearTestSupport.ironSpear());
+        float multiplier = SpearCharge.multiplier(ToolStack.from(player.getMainHandItem()));
+        helper.assertTrue(multiplier >= 0.7F && multiplier <= 1.2F,
+                "默认冲刺系数下倍率应落在原版区间 0.7~1.2，实际 " + multiplier);
+        helper.succeed();
+    }
+
     @PrefixGameTestTemplate(false)
     @GameTest(templateNamespace = FutureTinker.MOD_ID, template = "empty3x3x3", required = true)
     public static void spearIsListedInTheEncyclopedia(GameTestHelper helper) {

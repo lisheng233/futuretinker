@@ -116,9 +116,24 @@ public final class SpearCharge {
                 Math.round(90.0F / factor));
     }
 
-    /** 伤害倍率：矛头等级 + 矛头攻击力。原版是 0.7（木）~1.2（下界合金）。 */
+    /**
+     * 伤害倍率 = 基准值（矛头等级 + 攻击力）× 矛头的**冲刺系数**。
+     *
+     * <p>基准值对原版五种材质正好是 0.7（木）~1.2（下界合金）；冲刺系数来自材料数据
+     * {@code futuretinker:charge}，其它模组添加的材料没声明这条统计时用默认值 1.0，
+     * 于是「新材料也能用、只是倍率是基准」。</p>
+     */
     public static float multiplier(IToolStackView tool) {
-        return Mth.clamp(0.65F + 0.1F * headTier(tool) + 0.03F * headAttack(tool), 0.7F, 1.2F);
+        float base = Mth.clamp(0.65F + 0.1F * headTier(tool) + 0.03F * headAttack(tool), 0.7F, 1.2F);
+        return Mth.clamp(base * chargeCoefficient(tool), 0.2F, 4.0F);
+    }
+
+    /** 矛头材料的冲刺系数；没有这条统计的材料走默认值。 */
+    public static float chargeCoefficient(IToolStackView tool) {
+        return stats(tool, 0, ChargeMaterialStats.ID, ChargeMaterialStats.class)
+                .map(ChargeMaterialStats::charge)
+                .filter(value -> value > 0.0F)
+                .orElse(ChargeMaterialStats.DEFAULT_CHARGE);
     }
 
     /** 把骑手挑下坐骑所需的速度：原版 9（下界合金）~14（木）。 */

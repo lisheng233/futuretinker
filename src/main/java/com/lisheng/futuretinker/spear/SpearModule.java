@@ -50,6 +50,13 @@ public final class SpearModule implements FtModule {
     }
 
     @Override
+    public void commonSetup() {
+        // 材料统计类型必须在材料数据加载之前注册；模块关掉就不注册（关掉的模块什么都不注册）
+        slimeknights.tconstruct.library.materials.MaterialRegistry.getInstance()
+                .registerStatType(ChargeMaterialStats.TYPE);
+    }
+
+    @Override
     public void registerRegistries(RegisterEvent event) {
         SpearContent.registerItems(event);
         if (Registries.ITEM.equals(event.getRegistryKey())) {
