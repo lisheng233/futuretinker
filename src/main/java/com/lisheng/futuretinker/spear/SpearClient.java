@@ -28,16 +28,24 @@ public final class SpearClient {
 
     public static void register(IEventBus modBus) {
         modBus.addListener(SpearClient::onRegisterColors);
-        // 冲锋输入（本地计时 + 发包）与「压低动画」的模型 predicate
+        // 冲锋输入（本地计时 + 发包）
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener(SpearClientInput::onClientTick);
-        net.minecraft.client.renderer.item.ItemProperties.register(SpearContent.spear(),
-                new net.minecraft.resources.ResourceLocation("futuretinker", "spear_charge"),
-                (stack, level, entity, seed) -> SpearClientInput.chargeTicks());
-        // 戳刺的前冲：原版 1.21 的矛是「刺」而不是「挥」，1.20.1 没有物品动画接口，
-        // 所以用攻击动画进度（LivingEntity#attackAnim）切一个前冲的 display 模型出来。
-        net.minecraft.client.renderer.item.ItemProperties.register(SpearContent.spear(),
-                new net.minecraft.resources.ResourceLocation("futuretinker", "spear_attack"),
-                (stack, level, entity, seed) -> entity == null ? 0.0F : entity.getAttackAnim(0.0F));
+        // 物品 predicate 必须等物品真的注册完再登记：模组构造阶段物品还不存在，
+        // 那时候调用 SpearContent.spear() 会 NPE，整个模组加载失败（客户端实测过一次）。
+        modBus.addListener(SpearClient::onClientSetup);
+    }
+
+    private static void onClientSetup(net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent event) {
+        event.enqueueWork(() -> {
+            net.minecraft.client.renderer.item.ItemProperties.register(SpearContent.spear(),
+                    new net.minecraft.resources.ResourceLocation("futuretinker", "spear_charge"),
+                    (stack, level, entity, seed) -> SpearClientInput.chargeTicks());
+            // 戳刺的前冲：原版 1.21 的矛是「刺」而不是「挥」，1.20.1 没有物品动画接口，
+            // 所以用攻击动画进度（LivingEntity#getAttackAnim）切一个前冲的 display 模型出来。
+            net.minecraft.client.renderer.item.ItemProperties.register(SpearContent.spear(),
+                    new net.minecraft.resources.ResourceLocation("futuretinker", "spear_attack"),
+                    (stack, level, entity, seed) -> entity == null ? 0.0F : entity.getAttackAnim(0.0F));
+        });
     }
 
     private static void onRegisterColors(RegisterColorHandlersEvent.Item event) {

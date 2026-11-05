@@ -21,13 +21,13 @@ CONE_TIP = (7.5, 0.8)
 CONE_A = (2.4, 13.6)
 CONE_B = (12.6, 13.6)
 
-BUTT = (1.8, 14.2)
-TIP = (14.2, 1.4)
+BUTT = (1.4, 14.6)
+TIP = (14.6, 1.4)
 AXIS = (TIP[0] - BUTT[0], TIP[1] - BUTT[1])
 LEN = math.hypot(*AXIS)
 U = (AXIS[0] / LEN, AXIS[1] / LEN)
 N = (-U[1], U[0])
-JUNCTION = (BUTT[0] + U[0] * LEN * 0.55, BUTT[1] + U[1] * LEN * 0.55)
+JUNCTION = (BUTT[0] + U[0] * LEN * 0.5, BUTT[1] + U[1] * LEN * 0.5)
 
 
 def along(base, direction, distance):
@@ -83,8 +83,8 @@ def ring(predicate):
     return mask(edge)
 
 
-CONE_BASE = along(JUNCTION, U, 0.3)
-HEAD_TRI = (TIP, along(CONE_BASE, N, 3.2), along(CONE_BASE, N, -3.2))
+CONE_BASE = along(JUNCTION, U, 0.35)
+HEAD_TRI = (TIP, along(CONE_BASE, N, 3.5), along(CONE_BASE, N, -3.5))
 
 
 def head_layer(px, py):
@@ -96,9 +96,8 @@ def shaft_layer(px, py):
 
 
 def binding_layer(px, py):
-    a = along(JUNCTION, U, -1.1)
-    b = along(JUNCTION, U, 1.1)
-    return dist_to_segment(px, py, a, b) <= 1.6
+    # 尾部的包口：从屁股往前一小段，比杆略粗
+    return dist_to_segment(px, py, BUTT, along(BUTT, U, 1.9)) <= 1.75
 
 
 def cast_mask(hole):

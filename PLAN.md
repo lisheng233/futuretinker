@@ -303,6 +303,12 @@ GameTest 之外单独确认，但没有客户端就只能是「代码路径 + �
    页面从标签里的每个物品生成，文案从 `book/encyclopedia/<lang>/tools/small/<ns>_<path>.json` 读。
    所以「书里没有某个工具」的修法是把物品加进对应的 `tconstruct:modifiable/*` 标签 + 写文案，
    手写一份页面 JSON 放在目录里不会出现在书上（狼铠那份就是这么失效的）。
+21. **客户端代码别在构造阶段碰物品。** `DistExecutor.unsafeRunWhenOn(CLIENT, ...)` 是在模组构造函数里跑的，
+   那时物品还没注册；`SpearClient.register` 里直接 `ItemProperties.register(SpearContent.spear(), ...)`
+   会 NPE，整个模组构造失败（客户端实测：`Failed to complete lifecycle event CONSTRUCT`）。
+   物品 predicate 要在 `FMLClientSetupEvent`（`event.enqueueWork`）里登记。
+   **这条 GameTestServer 抓不到**：服务端不加载客户端类，所以那套判定对这类「客户端起不来」完全失明，
+   只有真的启动一次客户端才看得见。
 20. **一个标签页 + 多个可独立开关的模块**：标签页不属于任何模块，由模块表在物品注册完之后统一建；
    模块只在被启用时把自己的物品登记进去。判定同时查两件事：共用标签页的存在性跟着「有没有模块启用」，
    每个模块的物品存在性跟着自己的开关走。
