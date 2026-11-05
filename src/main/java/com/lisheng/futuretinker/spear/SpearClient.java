@@ -49,7 +49,6 @@ public final class SpearClient {
     }
 
     private static void onRegisterColors(RegisterColorHandlersEvent.Item event) {
-        event.register(SpearClient::toolColor, SpearContent.spear());
         event.register((stack, index) -> index == 0 ? partColor(stack) : -1, SpearContent.spearHead());
     }
 

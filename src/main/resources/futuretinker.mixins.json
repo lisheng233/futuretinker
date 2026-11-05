@@ -1,0 +1,12 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "com.lisheng.futuretinker.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "client": [
+    "ItemInHandRendererMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

@@ -160,19 +160,19 @@ FMLCommonSetupEvent                         → 配置已加载
 - 矛头**物品**图标：实心圆锥（做出来的东西是实心的）；
 - 部件台的 pattern 按钮、以及三种铸模：**中间透明**——铸模是「整块料挖出矛头形状的洞」，
   pattern 按钮是 1px 轮廓环（这两处按 GUI/铸模的规矩来）；
-- 矛本体：`item/generated` 三层贴图 = 矛头 / 矛杆 / 绑定结，**64×64**，
-  三层各自 tintindex 0/1/2，分别上「矛头材料 / 手柄材料 / 绑定结材料」的颜色。
-  父模型是 `item/handheld`，所以拿在手上是工具姿势（不是图标姿势）。
+- 矛本体：**直接复用原版 1.21.11 的矛图标**（`art/refs_vanilla_spear.png`，用户给的那张），
+  抠掉黑底后作为单层贴图 `item/spear`，父模型 `item/handheld`——所以外观就是原版那个样。
+  代价：矛本体不再按材料上色（材料色仍体现在矛头部件图标上）。
 
-**姿势与动画**（1.20.1 没有物品动画接口，所以用「模型 override + display 变换」做）：
+**姿势与动画**（1.20.1 没有物品动画接口，走 mixin）：
 
 - 冲锋**不进原版的「使用物品」状态**：`isUsingItem()` 会让 `LocalPlayer.aiStep` 把移动输入
   乘 0.2 并禁止疾跑——原版长矛冲锋要能边跑边压，所以右键只发一个「开始冲锋」包，
   松手发「结束冲锋」，计时在服务端走。顺带也就不会套用三叉戟那套压低动画。
-- 压低/旋转：客户端自己记「压了多少 tick」，注册成物品 predicate `futuretinker:spear_charge`，
-  模型按 1/3/6 tick 三个阈值换成三份 `display` 不同的子模型（越压越低、越往前）。
-- 戳刺前冲：用 `LivingEntity#getAttackAnim` 当 predicate（`futuretinker:spear_attack`），
-  挥击期间前冲一下——这是 1.20.1 能做的近似，不是原版那种专门的刺击动画。
+- `ItemInHandRendererMixin`（`futuretinker.mixins.json`，`mods.toml` 的 `[[mixins]]`）：
+  注入 `ItemInHandRenderer#renderArmWithItem` 的 HEAD，只接管【拿着矛且正在压低或挥击】的情况，
+  其余原样交回原版。压低 = 随时间向前向下压 + 绕 X 旋转，戳刺 = 挥击进度驱动的向前一顶。
+  注入目标用 SRG 名（`m_109371_`），mixin 配置 `required=false`，注入失败不会拖垮客户端。
 
 **百科条目**：匠魂百科的工具页是**按标签自动生成**的（`tconstruct:load_tools` + 语言文件），
 不是手写页面清单。所以矛进了 `tconstruct:modifiable/small`，文案在

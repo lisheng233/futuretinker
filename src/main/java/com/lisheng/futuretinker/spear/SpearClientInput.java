@@ -49,6 +49,16 @@ public final class SpearClientInput {
      * 模型 override 用它切成「还没压 / 压低 1 / 2 / 3」几档，档位之间换的是
      * {@code display} 的旋转与位移，于是就有了旋转+下压的过程。</p>
      */
+    /** 压低进度 0~1（给第一人称渲染用；20 tick 走满）。 */
+    public static float chargeProgress(float partialTicks) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (startTick < 0 || minecraft.player == null) {
+            return 0.0F;
+        }
+        float ticks = minecraft.player.tickCount - startTick + partialTicks;
+        return Math.max(0.0F, Math.min(1.0F, ticks / 20.0F));
+    }
+
     public static float chargeTicks() {
         Minecraft minecraft = Minecraft.getInstance();
         if (startTick < 0 || minecraft.player == null) {

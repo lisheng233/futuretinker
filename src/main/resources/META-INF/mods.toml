@@ -38,3 +38,7 @@ mandatory=true
 versionRange="${mantle_version_range}"
 ordering="AFTER"
 side="BOTH"
+
+# 客户端动画（压低 / 戳刺）：1.20.1 没有物品动画接口，只能 mixin 手部渲染
+[[mixins]]
+config="futuretinker.mixins.json"

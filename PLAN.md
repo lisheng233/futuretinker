@@ -303,6 +303,12 @@ GameTest 之外单独确认，但没有客户端就只能是「代码路径 + �
    页面从标签里的每个物品生成，文案从 `book/encyclopedia/<lang>/tools/small/<ns>_<path>.json` 读。
    所以「书里没有某个工具」的修法是把物品加进对应的 `tconstruct:modifiable/*` 标签 + 写文案，
    手写一份页面 JSON 放在目录里不会出现在书上（狼铠那份就是这么失效的）。
+22. **1.20.1 没有物品动画接口。** 物品「使用动画」只有 `UseAnim` 那几个硬编码分支，
+   模型的 `display` 变换只能整体挪，做不出压低的过程；攻击挥击也插不进前刺。
+   要真正的动画只能 mixin 客户端渲染：本项目注册了 `futuretinker.mixins.json`
+   （`mods.toml` 的 `[[mixins]]`），`ItemInHandRendererMixin` 注入 `renderArmWithItem` 的 HEAD，
+   只接管拿着矛且压低/挥击的帧。mixin 目标方法写 SRG 名（`m_109371_`），
+   并且 `required=false`，注入失败顶多没动画，不会让客户端起不来。
 21. **客户端代码别在构造阶段碰物品。** `DistExecutor.unsafeRunWhenOn(CLIENT, ...)` 是在模组构造函数里跑的，
    那时物品还没注册；`SpearClient.register` 里直接 `ItemProperties.register(SpearContent.spear(), ...)`
    会 NPE，整个模组构造失败（客户端实测：`Failed to complete lifecycle event CONSTRUCT`）。
