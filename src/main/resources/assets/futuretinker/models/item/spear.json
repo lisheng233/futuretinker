@@ -1,6 +1,8 @@
 {
   "parent": "item/handheld",
   "textures": {
-    "layer0": "futuretinker:item/spear"
+    "layer0": "futuretinker:item/spear_head_layer",
+    "layer1": "futuretinker:item/spear_shaft_layer",
+    "layer2": "futuretinker:item/spear_binding_layer"
   }
 }
