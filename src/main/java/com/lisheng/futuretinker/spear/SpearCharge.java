@@ -108,7 +108,7 @@ public final class SpearCharge {
         int tier = headTier(tool);
         float factor = Mth.clamp(1.0F + handleDurabilityBonus(tool), 0.75F, 1.5F);
         return new Timings(
-                Math.max(2, Math.round((16.0F - 2.0F * tier) / factor)),
+                Math.max(1, Math.round((8.0F - tier) / factor)),
                 Math.round(50.0F * factor),
                 Math.round(70.0F * factor),
                 Math.round(90.0F * factor));

@@ -46,18 +46,21 @@ public abstract class ItemInHandRendererMixin {
         if (hand != InteractionHand.MAIN_HAND || !SpearContent.isSpear(stack)) {
             return;
         }
-        float charge = SpearClientInput.chargeProgress(partialTicks);
+        boolean charging = SpearClientInput.isCharging();
         float thrust = player.getAttackAnim(partialTicks);
-        if (charge <= 0.0F && thrust <= 0.0F) {
+        if (!charging && thrust <= 0.0F) {
             return;
         }
+        float charge = SpearClientInput.chargeProgress(partialTicks);
 
         poseStack.pushPose();
         this.m_109382_(poseStack, player.getMainArm(), equipProgress);
-        // 压低：越压越低、越压越向前；戳刺：向前一顶
-        poseStack.translate(0.0F, -0.16F * charge, 0.30F * charge + 0.45F * thrust);
-        poseStack.mulPose(Axis.XP.rotationDegrees(-35.0F * charge - 20.0F * thrust));
-        poseStack.mulPose(Axis.YP.rotationDegrees(-10.0F * charge));
+        // 先向前翻 90°：手上这根矛默认是竖的，不翻就一直是竖着的
+        poseStack.translate(0.0F, -0.12F * charge, 0.25F * charge + 0.40F * thrust);
+        poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
+        // 再按进度继续下压；戳刺是向前一顶
+        poseStack.mulPose(Axis.XP.rotationDegrees(-25.0F * charge - 15.0F * thrust));
+        poseStack.mulPose(Axis.YP.rotationDegrees(-15.0F * charge - 25.0F * thrust));
         this.m_269530_(player, stack, ItemDisplayContext.FIRST_PERSON_RIGHT_HAND, false, poseStack, buffer, light);
         poseStack.popPose();
         callback.cancel();
