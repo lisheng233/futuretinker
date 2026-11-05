@@ -146,14 +146,19 @@
 
 ## M4/M5 进度（长矛）
 
-**已通**（28 条 GameTest 全部通过，其中长矛 9 条）：
+**已通**（30 条 GameTest 全部通过，其中长矛 11 条）：
 
-- 物品是匠魂工具 `futuretinker:spear`；部件是 **矛头（自制）+ `tough_binding` + `tough_handle`**。
-  矛头是普通部件物品（`ToolPartItem` + `HeadMaterialStats`），部件台里用空白模板 + 材料做
-  （`tconstruct:part_builder`，pattern 纹理 `futuretinker:gui/tinker_pattern/spear_head`）；
-  图标是灰度遮罩 + 材料上色，**不**用 `tconstruct:material` 模型（那条路要每材料一张变体贴图，
-  插件自加的贴图不会被生成）。长矛本体模型引用 `tconstruct:item/tool/javelin/*`（head/handle/grip），
-  所以本体不会紫黑。
+- 物品是匠魂工具 `futuretinker:spear`（显示名「矛」）；部件是 **矛头（自制）+ `tough_binding` + `tough_handle`**。
+  矛头是普通部件物品（`ToolPartItem` + `HeadMaterialStats`），部件台里用空白模板 + 材料做，
+  也可以先做一次再灌出**三种铸模**（金/沙子/红沙，`PartCastItem`）。
+- **图标**：`mc-art` 渲染，plan 由 `art/spear_masks.py` 从几何生成（圆锥的二维投影）。
+  矛头部件与 pattern 按钮**只画轮廓、中间透明**；矛本体是 `item/generated` 三层
+  （矛头/矛杆/绑定结），tintindex 0/1/2 分别上三个材料的颜色。
+- **不再紫黑**：原先把模型指向 `tconstruct:item/tool/javelin/*` 想蹭匠魂的材料变体，
+  但那是给匠魂自己的工具页生成的，插件贴图没有变体 → 手里/地上是紫黑格。改成平铺多层 + 染色。
+- **百科**：矛进 `tconstruct:modifiable/small`，百科的「小工具」章节按标签自动生成页面，
+  文案在 `assets/tconstruct/book/encyclopedia/{en_us,zh_cn}/tools/small/futuretinker_spear.json`。
+- **创造模式**：两个模块共用一个标签页「未来匠魂」（`futuretinker:main`），由模块表统一注册。
 - **戳刺**：主手加 `forge:entity_reach` +1.5（触及 4.5）；2 格内取消；不满蓄力取消；
   `CriticalHitEvent` 设 `DENY` 取消暴击；结算前取消疾跑状态以规避冲刺击退；
   左键方块取消（不挖方块）；`sweep` 用眼睛射线 + `box.inflate(0.125)` 扫多个目标，
@@ -165,7 +170,7 @@
 - **材料映射**：矛头耐久分档 0~4 当「等级」（正好对应原版木/石/铁/钻石/下界合金），
   等级决定倍率（0.7~1.2）、挑落阈值（14~9 格/秒）与激活延迟；
   手柄材料的 `durability` 比例修正（-0.35~+0.35）决定疲劳窗口长度（0.75~1.5 倍）。
-- 判定：28 条必需测试全过；`--fault` 仍被抓到。
+- 判定：30 条必需测试全过；`--fault` 仍被抓到。
 
 **没做的**：只有「三阶段的持矛姿势差异」。1.20.1 的 item 系统只有一档 `UseAnim.SPEAR`
 （压低）姿态，没有按阶段换姿态的动画/模型接口；硬做只能换模型文件假装，客户端不可验证。
@@ -289,6 +294,18 @@ GameTest 之外单独确认，但没有客户端就只能是「代码路径 + �
    部件本身只要一个 `tconstruct:part_builder` 配方（`pattern` + 空白模板 tag）就会出现在
    部件台里——部件台是**按钮列表**（`PartBuilderBlockEntity` 的 `Map<Pattern, Recipe>`），
    不是按 pattern NBT 匹配，所以新部件不需要新的 pattern 物品。
+18. **工具本体同理，别蹭匠魂的工具贴图。** 把模型指向 `tconstruct:item/tool/javelin/*`
+   看起来能复用材料变体，但那些变体是给匠魂自己的模型生成的，插件指向的路径没有 → 手里/地上紫黑。
+   改用 `item/generated` 多层：每层一张灰度贴图，`ItemModelGenerator` 给的 tintindex 就是层号，
+   于是能把「矛头 / 矛杆 / 绑定结」三层分别染成三个材料的颜色。
+19. **匠魂百科的工具页是按标签自动生成的**，不是手写页面清单：section JSON 里有
+   `"extraData": {"tconstruct:load_tools": {"tag": "tconstruct:modifiable/small", "path": "tools/small"}}`，
+   页面从标签里的每个物品生成，文案从 `book/encyclopedia/<lang>/tools/small/<ns>_<path>.json` 读。
+   所以「书里没有某个工具」的修法是把物品加进对应的 `tconstruct:modifiable/*` 标签 + 写文案，
+   手写一份页面 JSON 放在目录里不会出现在书上（狼铠那份就是这么失效的）。
+20. **一个标签页 + 多个可独立开关的模块**：标签页不属于任何模块，由模块表在物品注册完之后统一建；
+   模块只在被启用时把自己的物品登记进去。判定同时查两件事：共用标签页的存在性跟着「有没有模块启用」，
+   每个模块的物品存在性跟着自己的开关走。
 
 ## 风险与注意事项
 

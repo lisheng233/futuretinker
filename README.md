@@ -144,19 +144,35 @@ FMLCommonSetupEvent                         → 配置已加载
 复刻高版本原版长矛（1.21.11）的战斗机制。参照的数值来自 wiki 的长矛页面与 25w41a~rc1 的更新日志，
 代码里每个常数旁边都写了出处（`SpearCharge` 顶部注释）。
 
-**物品**：`futuretinker:spear`，匠魂工具。部件是 **矛头（本模组新增）+ 坚韧绑定结 + 坚韧手柄**：
+**物品**：`futuretinker:spear`（名字就叫「矛」），匠魂工具。部件是 **矛头（本模组新增）+ 坚韧绑定结 + 坚韧手柄**：
 
 | 部件 | 来源 | 统计 | 拿到的方式 |
 | --- | --- | --- | --- |
-| `futuretinker:spear_head` | 自制（`ToolPartItem` + `HeadMaterialStats`） | head（耐久/攻击力 = 长矛的伤害与「等级」） | 部件台：空白模板 + 材料（`tconstruct:part_builder`，pattern `futuretinker:spear_head`） |
+| `futuretinker:spear_head` | 自制（`ToolPartItem` + `HeadMaterialStats`） | head（耐久/攻击力 = 矛的伤害与「等级」） | 部件台空白模板 + 材料；或三种铸模（金/沙子/红沙）灌出来 |
 | `tconstruct:tough_handle` | 匠魂 | handle（手柄的耐久修正 = 疲劳窗口） | 匠魂既有流程 |
 | `tconstruct:tough_binding` | 匠魂 | binding（无统计） | 匠魂既有流程 |
 
-矛头图标是**灰度遮罩 + 材料上色**（`SpearClient`，模组总线的 `RegisterColorHandlersEvent.Item`），
-模型是 `item/generated`；**没有走匠魂的 `tconstruct:material` 模型**，因为那条路要求每个材料都有一张
-`<贴图>_<材料>` 变体，插件自己加的贴图不会被生成（狼铠那轮的紫黑就是这么来的）。
-长矛本体的模型引用 `tconstruct:item/tool/javelin/*` 的贴图（head / handle / grip 三个），
-材料变体由匠魂生成，所以本体不会紫黑；形状因此是「标枪」那一套，不是另画一把矛。
+**矛头的三种铸模**：`futuretinker:spear_head_cast`（金，可反复用）/ `_sand_cast` / `_red_sand_cast`，
+配方各三种（金铸造台、沙子压模、沙子模板）都在 `data/futuretinker/recipes/smeltery/casts/`。
+
+**图标**（全部 `mc-art` 渲染，plan 由 `art/spear_masks.py` 生成，形状是「圆锥的二维投影」）：
+
+- 矛头部件与部件台的 pattern 按钮：**只画轮廓，中间透明**（1px 环）；
+- 矛本体：`item/generated` 三层贴图 = 矛头 / 矛杆 / 绑定结，三层各自 tintindex 0/1/2，
+  分别上「矛头材料 / 手柄材料 / 绑定结材料」的颜色——一根矛能同时有三种材料色。
+
+**为什么不用匠魂的 `tconstruct:tool` 模型**：那个模型会为每张贴图找 `<贴图>_<材料>` 变体，
+而变体是匠魂为自己的工具贴图生成的，插件指向的贴图没有变体 → 手里/地上是紫黑格。
+平铺多层模型 + 染色绕开了这条查找，所以不会紫黑。
+
+**百科条目**：匠魂百科的工具页是**按标签自动生成**的（`tconstruct:load_tools` + 语言文件），
+不是手写页面清单。所以矛进了 `tconstruct:modifiable/small`，文案在
+`assets/tconstruct/book/encyclopedia/{en_us,zh_cn}/tools/small/futuretinker_spear.json`。
+（之前狼铠手写的那份页面之所以不出现，就是因为它没走这条机制。）
+
+**创造模式**：所有模块共用一个标签页「未来匠魂」（`futuretinker:main`）。标签页由模块表在
+物品注册完之后统一建，模块只把自己启用的物品交上去——关掉一个模块，标签页里就没有它的东西；
+全关掉时标签页本身也不注册。
 
 | 行为 | 实现在哪 | 判据（GameTest） |
 | --- | --- | --- |
@@ -199,7 +215,7 @@ FMLCommonSetupEvent                         → 配置已加载
 - `gradlew build` 退出码 0；产物 `build/libs/futuretinker-0.1.0.jar` 里 `mods.toml` 的占位符
   已展开、中文描述是合法 UTF-8、`pack.mcmeta` 的 `pack_format=15`。
 - `libs/` 里的匠魂/Mantle jar 经 `flatDir` + `fg.deobf` 正确解析，deobf 产物存在。
-- `python tools/verify_gametest.py` 通过：**28 条必需测试全过**，日志有批次计数，退出码 0。
+- `python tools/verify_gametest.py` 通过：**30 条必需测试全过**，日志有批次计数，退出码 0。
 - `python tools/verify_gametest.py --fault` 下判定失败（`1 required tests failed :(`，
   gradle 退出码 1，脚本判「注入的故障被抓住」），证明这套检查会说不。
 - 模组加载期崩溃/编译失败时脚本判定「没跑到测试」（退出码 2），不会误读成通过。
@@ -224,6 +240,13 @@ FMLCommonSetupEvent                         → 配置已加载
   手柄材料改变疲劳窗口、12.5 格/秒冲锋造成伤害并挑落骑手、前方两个目标同时被命中、
   原地不动打不出伤害。冲锋测试把战场抬到 40 格高空，避免隔壁结构的实体进入扫描范围
   （GameTest 的结构是紧挨着排的，这条踩过）。
+- **三种铸模真的注册了**：`SpearDataTests.castsAreRegistered`（三个 `PartCastItem`），
+  外加 9 个配方 id 的加载断言（装配、部件台、金铸模、沙子/红沙的压模与两种模板）。
+- **百科里有矛**：`SpearDataTests.spearIsListedInTheEncyclopedia` 断言矛在
+  `tconstruct:modifiable/small` 里（这是百科生成工具页的机制），且文案文件存在。
+- **只有一个标签页，且跟着开关走**：`ModuleGateTests.gateIsWiredToConfig` 现在断言
+  「共用的 `futuretinker:main` 有模块启用时存在、全关时不存在」，并逐个模块断言它的物品
+  在关掉时一个都不在注册表里。
 
 **未验证（别当成已验证）**
 

@@ -2,6 +2,7 @@ package com.lisheng.futuretinker.gametest;
 
 import com.lisheng.futuretinker.FutureTinker;
 import com.lisheng.futuretinker.config.FutureTinkerConfig;
+import com.lisheng.futuretinker.module.CreativeTab;
 import com.lisheng.futuretinker.module.FtModule;
 import com.lisheng.futuretinker.module.ModuleRegistry;
 import java.util.HashSet;
@@ -33,10 +34,11 @@ import net.minecraftforge.gametest.PrefixGameTestTemplate;
 public final class ModuleGateTests {
     private ModuleGateTests() {}
 
-    /** 关掉的模块必须什么都没注册；启用的模块必须真的注册了那个标签页。 */
+    /** 关掉的模块必须什么都没注册；所有模块共用一个「未来匠魂」标签页。 */
     @PrefixGameTestTemplate(false)
     @GameTest(templateNamespace = FutureTinker.MOD_ID, template = "empty3x3x3", required = true)
     public static void gateIsWiredToConfig(GameTestHelper helper) {
+        boolean anyEnabled = false;
         for (FtModule module : ModuleRegistry.modules()) {
             String id = module.id();
 
@@ -58,13 +60,23 @@ public final class ModuleGateTests {
             helper.assertTrue(gatedOn == configuredNow,
                     "模块 " + id + " 闸门读到 " + gatedOn + "，配置是 " + configuredNow + "：闸门没接在配置上");
 
-            ResourceLocation tabId = FutureTinker.id(id);
-            boolean tabPresent = BuiltInRegistries.CREATIVE_MODE_TAB.containsKey(tabId);
-            helper.assertTrue(tabPresent == configuredNow,
-                    "模块 " + id + " 配置 enabled=" + configuredNow
-                            + "，但创造模式标签页 " + tabId + " 存在=" + tabPresent
-                            + "：关掉的模块必须什么都没注册");
+            // 关掉的模块，它的物品必须一个都不在注册表里（这是「模块可独立启停」的硬证据）。
+            for (ResourceLocation itemId : module.contentItems()) {
+                boolean present = BuiltInRegistries.ITEM.containsKey(itemId);
+                helper.assertTrue(present == configuredNow,
+                        "模块 " + id + " 配置 enabled=" + configuredNow
+                                + "，但物品 " + itemId + " 存在=" + present
+                                + "：关掉的模块必须什么都不注册");
+            }
+            anyEnabled |= configuredNow;
         }
+
+        // 所有模块共用一个标签页：有模块启用时才存在，全关掉时不存在。
+        ResourceLocation tabId = FutureTinker.id(CreativeTab.ID);
+        boolean tabPresent = BuiltInRegistries.CREATIVE_MODE_TAB.containsKey(tabId);
+        helper.assertTrue(tabPresent == anyEnabled,
+                "共用标签页 " + tabId + " 存在=" + tabPresent + "，有模块启用=" + anyEnabled
+                        + "：应该只有一个「未来匠魂」标签页，且只在有内容时注册");
         helper.succeed();
     }
 

@@ -1,11 +1,13 @@
 {
-  "itemGroup.futuretinker.wolfarmor": "未来匠魂：狼铠",
-  "itemGroup.futuretinker.spear": "未来匠魂：长矛",
-  "item.futuretinker.wolf_armor": "匠魂狼铠",
+  "itemGroup.futuretinker.main": "未来匠魂",
+  "item.futuretinker.wolf_armor": "狼铠",
   "item.futuretinker.wolf_armor.description": "给狼穿的护甲：拿着它右键已驯服的狼即可穿上，剪刀可以取下。",
-  "item.futuretinker.spear": "匠魂长矛",
+  "item.futuretinker.spear": "矛",
   "item.futuretinker.spear.description": "按住右键把矛压低进入冲锋：和目标的相对速度越快，伤害越高；够快还能把骑手挑下坐骑。戳刺能打到 4.5 格、一次戳多个目标，但打不了 2 格以内的目标。",
-  "item.futuretinker.spear_head": "长矛矛头",
-  "item.futuretinker.spear_head.description": "矛头：耐久决定长矛的「等级」，也就是冲锋倍率与挑落阈值。",
-  "pattern.futuretinker.spear_head": "长矛矛头"
+  "item.futuretinker.spear_head": "矛头",
+  "item.futuretinker.spear_head.description": "矛头：耐久决定矛的「等级」，也就是冲锋倍率与挑落阈值。",
+  "item.futuretinker.spear_head_cast": "矛头金铸模",
+  "item.futuretinker.spear_head_sand_cast": "矛头沙子铸模",
+  "item.futuretinker.spear_head_red_sand_cast": "矛头红沙铸模",
+  "pattern.futuretinker.spear_head": "矛头"
 }

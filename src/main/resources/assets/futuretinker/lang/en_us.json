@@ -1,11 +1,13 @@
 {
-  "itemGroup.futuretinker.wolfarmor": "Future Tinker: Wolf Armor",
-  "itemGroup.futuretinker.spear": "Future Tinker: Spear",
-  "item.futuretinker.wolf_armor": "Tinker's Wolf Armor",
+  "itemGroup.futuretinker.main": "Future Tinker",
+  "item.futuretinker.wolf_armor": "Wolf Armor",
   "item.futuretinker.wolf_armor.description": "Armor built for a wolf: right-click a tamed wolf to put it on, shears take it off.",
-  "item.futuretinker.spear": "Tinker's Spear",
+  "item.futuretinker.spear": "Spear",
   "item.futuretinker.spear.description": "Hold right-click to lower the spear: charge damage scales with the speed of you and your target, and a fast enough joust dismounts riders. Jabs reach 4.5 blocks and can hit several targets, but cannot hit inside 2 blocks.",
   "item.futuretinker.spear_head": "Spear Head",
   "item.futuretinker.spear_head.description": "The head: its durability sets the spear's tier, which drives the charge multiplier and dismount threshold.",
+  "item.futuretinker.spear_head_cast": "Spear Head Gold Cast",
+  "item.futuretinker.spear_head_sand_cast": "Spear Head Sand Cast",
+  "item.futuretinker.spear_head_red_sand_cast": "Spear Head Red Sand Cast",
   "pattern.futuretinker.spear_head": "Spear Head"
 }

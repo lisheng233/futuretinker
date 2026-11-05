@@ -1,16 +1,8 @@
 {
-  "loader": "tconstruct:tool",
-  "parent": "tconstruct:item/base/tall",
+  "parent": "item/generated",
   "textures": {
-    "head": "tconstruct:item/tool/javelin/head",
-    "handle": "tconstruct:item/tool/javelin/handle",
-    "grip": "tconstruct:item/tool/javelin/grip"
-  },
-  "large": true,
-  "large_offset": [-2, 2],
-  "parts": [
-    { "name": "handle", "index": 1 },
-    { "name": "grip", "index": 2 },
-    { "name": "head", "index": 0 }
-  ]
+    "layer0": "futuretinker:item/spear_head_layer",
+    "layer1": "futuretinker:item/spear_shaft_layer",
+    "layer2": "futuretinker:item/spear_binding_layer"
+  }
 }

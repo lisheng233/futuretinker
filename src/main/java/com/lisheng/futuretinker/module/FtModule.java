@@ -1,5 +1,7 @@
 package com.lisheng.futuretinker.module;
 
+import java.util.List;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.RegisterEvent;
 
@@ -15,7 +17,7 @@ import net.minecraftforge.registries.RegisterEvent;
  * </ol>
  */
 public interface FtModule {
-    /** 模块 id，同时是配置节名、注册名后缀与创造模式标签页路径。必须是小写、非空。 */
+    /** 模块 id，同时是配置节名与注册名后缀。必须是小写、非空。 */
     String id();
 
     /** 模组构造阶段调用（无论模块是否启用）。只允许挂监听器。 */
@@ -26,4 +28,12 @@ public interface FtModule {
 
     /** 模块启用时的通用初始化阶段（由 {@link ModuleRegistry} 放进 enqueueWork 里跑）。 */
     default void commonSetup() {}
+
+    /**
+     * 这个模块注册的物品 id（给「关掉的模块什么都不注册」这条判定用）。
+     * 模块被关掉时这些 id 必须一个都不在注册表里。
+     */
+    default List<ResourceLocation> contentItems() {
+        return List.of();
+    }
 }

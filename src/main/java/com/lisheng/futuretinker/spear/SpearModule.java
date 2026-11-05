@@ -1,14 +1,14 @@
 package com.lisheng.futuretinker.spear;
 
 import com.lisheng.futuretinker.FutureTinker;
+import com.lisheng.futuretinker.module.CreativeTab;
 import com.lisheng.futuretinker.module.FtModule;
+import java.util.List;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.RegisterEvent;
@@ -23,8 +23,6 @@ import net.minecraftforge.registries.RegisterEvent;
  *   <li><b>冲锋</b>：按住右键压低，伤害 = 1 + 倍率 × 相对速度，够快则击退、挑落骑乘（{@link SpearCharge}）；</li>
  *   <li><b>疲劳</b>：engaged → tired → disengaged，窗口长度由手柄材料决定。</li>
  * </ul>
- *
- * <p>注册名带 {@code futuretinker:} 前缀，与 Tinkers' Tools / Dreamtinker 的长矛共存。</p>
  */
 public final class SpearModule implements FtModule {
     public static final String ID = "spear";
@@ -42,7 +40,7 @@ public final class SpearModule implements FtModule {
         MinecraftForge.EVENT_BUS.addListener(SpearAttack::onCritical);
         MinecraftForge.EVENT_BUS.addListener(SpearAttack::onLeftClickBlock);
         MinecraftForge.EVENT_BUS.addListener(SpearAttack::onLeftClickEmpty);
-        // 客户端：矛头图标按材料上色（服务器端不会加载这个类）
+        // 客户端：矛头/长矛图标按材料上色（服务器端不会加载这个类）
         net.minecraftforge.fml.DistExecutor.unsafeRunWhenOn(
                 net.minecraftforge.api.distmarker.Dist.CLIENT, () -> () -> SpearClient.register(modBus));
         FutureTinker.LOGGER.info("Future Tinker: 长矛已接入（戳刺 + 冲锋 + 疲劳；矛头部件 {}）",
@@ -52,17 +50,20 @@ public final class SpearModule implements FtModule {
     @Override
     public void registerRegistries(RegisterEvent event) {
         SpearContent.registerItems(event);
-        if (!Registries.CREATIVE_MODE_TAB.equals(event.getRegistryKey())) {
-            return;
+        if (Registries.ITEM.equals(event.getRegistryKey())) {
+            // 唯一的「未来匠魂」标签页由 ModuleRegistry 统一建，这里只把物品交上去
+            CreativeTab.add(SpearContent::spear);
+            CreativeTab.add(SpearContent::spearHead);
+            SpearContent.casts().forEach(cast -> CreativeTab.add(() -> cast));
         }
-        event.register(Registries.CREATIVE_MODE_TAB, FutureTinker.id(ID), () -> CreativeModeTab.builder()
-                .title(Component.translatable("itemGroup." + FutureTinker.MOD_ID + "." + ID))
-                .icon(() -> new ItemStack(SpearContent.spear()))
-                .displayItems((parameters, output) -> {
-                    output.accept(SpearContent.spear());
-                    output.accept(SpearContent.spearHead());
-                })
-                .build());
+    }
+
+    @Override
+    public List<ResourceLocation> contentItems() {
+        return List.of(FutureTinker.id(SpearContent.ID), FutureTinker.id(SpearContent.HEAD_ID),
+                FutureTinker.id(SpearContent.HEAD_ID + "_cast"),
+                FutureTinker.id(SpearContent.HEAD_ID + "_sand_cast"),
+                FutureTinker.id(SpearContent.HEAD_ID + "_red_sand_cast"));
     }
 
     /** 冲锋时压低矛身的声音（原版 {@code item.spear.use} 在 1.20.1 不存在，用最接近的音效）。 */

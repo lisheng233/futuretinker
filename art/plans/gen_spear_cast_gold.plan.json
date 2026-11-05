@@ -1,0 +1,143 @@
+{
+  "request": {
+    "query": "spear head gold cast: a block with a cone shaped cavity",
+    "form": "item",
+    "name": "spear_head_cast_gold",
+    "namespace": "futuretinker",
+    "width": 16,
+    "height": 16,
+    "novelty": 0.3,
+    "target_path": null,
+    "shape_policy": "planned",
+    "seed": 71,
+    "pack_format": 15
+  },
+  "descriptor": {
+    "target": "The gold cast for the spear head: a full block with the cone shaped cavity punched out.",
+    "semantic": "The gold cast for the spear head: a full block with the cone shaped cavity punched out.",
+    "visual_identity": [
+      "16x16 transparent-background item sprite",
+      "neutral grey ramp so the game can tint it with the material colour"
+    ],
+    "parts": [
+      {
+        "id": "shape",
+        "meaning": "The gold cast for the spear head: a full block with the cone shaped cavity punched out.",
+        "required": true,
+        "paint_only": false,
+        "layer": 0,
+        "style_role": "silhouette support",
+        "recognition_terms": [
+          "spear",
+          "cone"
+        ],
+        "contour_intent": "elongated"
+      }
+    ],
+    "negative_identities": [
+      "sword blade",
+      "chestplate"
+    ],
+    "orientation": "as drawn",
+    "reference_strategy": "no reference",
+    "shape_edit_mode": "appearance_only",
+    "reference_waiver": "1.20.1 has no spear; the cone silhouette is authored from the vanilla 1.21.11 spear as a 2D projection, and only the Tinkers material grammar is borrowed.",
+    "reference_part_map": null,
+    "target_part_map": null,
+    "class": "unknown",
+    "layer": "unknown"
+  },
+  "geometry": {
+    "width": 16,
+    "height": 16,
+    "parts": [
+      {
+        "id": "shape",
+        "meaning": "The gold cast for the spear head: a full block with the cone shaped cavity punched out.",
+        "required": true,
+        "paint_only": false,
+        "layer": 0,
+        "style_role": "silhouette support",
+        "recognition_terms": [
+          "spear",
+          "cone"
+        ],
+        "contour_intent": "elongated"
+      }
+    ],
+    "primitives": [
+      {
+        "id": "mask",
+        "part_id": "shape",
+        "primitive": "custom_mask",
+        "params": {
+          "offset": [
+            0,
+            0
+          ],
+          "marker": "X",
+          "rows": [
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXX.XXXXXXXX",
+            "XXXXXXX.XXXXXXXX",
+            "XXXXXX...XXXXXXX",
+            "XXXXXX...XXXXXXX",
+            "XXXXXX...XXXXXXX",
+            "XXXXX.....XXXXXX",
+            "XXXXX.....XXXXXX",
+            "XXXX.......XXXXX",
+            "XXXX.......XXXXX",
+            "XXXX.......XXXXX",
+            "XXX.........XXXX",
+            "XXX.........XXXX",
+            "XX...........XXX",
+            "XXXXXXXXXXXXXXXX",
+            "XXXXXXXXXXXXXXXX"
+          ]
+        },
+        "layer": 0
+      }
+    ],
+    "connections": [],
+    "constraints": [],
+    "uv_regions": [],
+    "background_transparent": true
+  },
+  "appearance": {
+    "palette": {
+      "c0": "#FCE24E",
+      "c1": "#FDF55F"
+    },
+    "parts": {
+      "shape": {
+        "colors": [
+          "c0",
+          "c1"
+        ],
+        "material": "metal",
+        "shade_axis": "top_left_to_bottom_right",
+        "noise": 0.0,
+        "highlight_ratio": 0.0,
+        "marks": [],
+        "shade_mode": "gradient"
+      }
+    },
+    "outline_color": "#1E1E1E",
+    "outline_width": 0,
+    "transparent_background": true,
+    "reference_sampling": "none",
+    "region_rules": [],
+    "part_reference_sampling": {},
+    "part_reference_sources": {},
+    "part_reference_composite": {},
+    "motif_policy": "model_authored",
+    "accent_colors": [],
+    "accent_budget": 0,
+    "accent_min_cluster": 1,
+    "accent_cleanup": false,
+    "accent_edge_max": 90,
+    "band_maximum_isolated": 0.1,
+    "band_maximum_step": 30
+  },
+  "references": []
+}

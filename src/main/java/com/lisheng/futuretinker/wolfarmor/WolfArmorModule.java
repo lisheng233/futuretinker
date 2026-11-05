@@ -1,11 +1,11 @@
 package com.lisheng.futuretinker.wolfarmor;
 
 import com.lisheng.futuretinker.FutureTinker;
+import com.lisheng.futuretinker.module.CreativeTab;
 import com.lisheng.futuretinker.module.FtModule;
+import java.util.List;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.RegisterEvent;
@@ -46,12 +46,14 @@ public final class WolfArmorModule implements FtModule {
     public void registerRegistries(RegisterEvent event) {
         // 物品在 RegisterEvent 里创建（Item 构造函数会写注册表，构造阶段注册表已冻结）。
         WolfArmorContent.registerItems(event);
-        if (Registries.CREATIVE_MODE_TAB.equals(event.getRegistryKey())) {
-            event.register(Registries.CREATIVE_MODE_TAB, FutureTinker.id(ID), () -> CreativeModeTab.builder()
-                    .title(Component.translatable("itemGroup." + FutureTinker.MOD_ID + "." + ID))
-                    .icon(() -> new ItemStack(WolfArmorContent.wolfArmor()))
-                    .displayItems((parameters, output) -> output.accept(WolfArmorContent.wolfArmor()))
-                    .build());
+        if (Registries.ITEM.equals(event.getRegistryKey())) {
+            // 唯一的「未来匠魂」标签页由 ModuleRegistry 统一建，这里只把物品交上去
+            CreativeTab.add(WolfArmorContent::wolfArmor);
         }
+    }
+
+    @Override
+    public List<ResourceLocation> contentItems() {
+        return List.of(FutureTinker.id(WolfArmorContent.ARMOR_ID));
     }
 }

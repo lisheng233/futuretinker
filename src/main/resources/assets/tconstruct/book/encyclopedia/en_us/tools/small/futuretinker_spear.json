@@ -1,0 +1,18 @@
+{
+  "tool": "futuretinker:spear",
+  "text": [
+    {
+      "text": "The Spear is a charging weapon: hold right-click to lower it, then trade speed for damage."
+    },
+    {
+      "text": "Charge damage is 1 + multiplier x the relative speed (blocks per second) between you and the target. The target only takes damage above 4.6 b/s, and it is only knocked back when your own speed is above 5.1 b/s; in the engaged stage a fast enough joust dismounts the rider.",
+      "paragraph": true
+    }
+  ],
+  "properties": [
+    "4.5 block reach",
+    "Cannot jab inside 2 blocks",
+    "Charge damage scales with relative speed",
+    "Three charge stages (engaged / tired / disengaged)"
+  ]
+}

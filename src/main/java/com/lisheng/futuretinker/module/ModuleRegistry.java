@@ -76,6 +76,8 @@ public final class ModuleRegistry {
             announced = true;
             FutureTinker.LOGGER.info("Future Tinker 模块闸门（注册阶段）: 启用={} 关闭={}", enabled, disabled);
         }
+        // 唯一的创造模式标签页：物品都注册完之后才建，里面只会有启用的模块登记过的东西
+        CreativeTab.register(event);
     }
 
     private static void onCommonSetup(FMLCommonSetupEvent event) {
