@@ -76,12 +76,10 @@ public final class SpearChargeTests {
         ItemStack longWindow = SpearTestSupport.spear(
                 SpearTestSupport.material("tconstruct:iron"),
                 SpearTestSupport.material("tconstruct:queens_slime"),
-                SpearTestSupport.material("tconstruct:iron"),
                 SpearTestSupport.material("tconstruct:iron"));
         ItemStack shortWindow = SpearTestSupport.spear(
                 SpearTestSupport.material("tconstruct:iron"),
                 SpearTestSupport.material("tconstruct:electrum"),
-                SpearTestSupport.material("tconstruct:iron"),
                 SpearTestSupport.material("tconstruct:iron"));
 
         SpearCharge.Timings longTimings = SpearCharge.timings(ToolStack.from(longWindow));

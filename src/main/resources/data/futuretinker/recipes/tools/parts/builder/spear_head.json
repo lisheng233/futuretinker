@@ -1,0 +1,13 @@
+{
+  "type": "tconstruct:part_builder",
+  "cost": 2,
+  "pattern": "futuretinker:spear_head",
+  "pattern_item": [
+    {
+      "tag": "tconstruct:patterns/default"
+    }
+  ],
+  "result": {
+    "item": "futuretinker:spear_head"
+  }
+}

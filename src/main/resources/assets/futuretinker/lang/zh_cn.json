@@ -4,5 +4,8 @@
   "item.futuretinker.wolf_armor": "匠魂狼铠",
   "item.futuretinker.wolf_armor.description": "给狼穿的护甲：拿着它右键已驯服的狼即可穿上，剪刀可以取下。",
   "item.futuretinker.spear": "匠魂长矛",
-  "item.futuretinker.spear.description": "按住右键把矛压低进入冲锋：和目标的相对速度越快，伤害越高；够快还能把骑手挑下坐骑。戳刺能打到 4.5 格，但打不了 2 格以内的目标。"
+  "item.futuretinker.spear.description": "按住右键把矛压低进入冲锋：和目标的相对速度越快，伤害越高；够快还能把骑手挑下坐骑。戳刺能打到 4.5 格、一次戳多个目标，但打不了 2 格以内的目标。",
+  "item.futuretinker.spear_head": "长矛矛头",
+  "item.futuretinker.spear_head.description": "矛头：耐久决定长矛的「等级」，也就是冲锋倍率与挑落阈值。",
+  "pattern.futuretinker.spear_head": "长矛矛头"
 }

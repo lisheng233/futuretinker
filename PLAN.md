@@ -146,25 +146,30 @@
 
 ## M4/M5 进度（长矛）
 
-**已通**（25 条 GameTest 全部通过，其中长矛 6 条）：
+**已通**（28 条 GameTest 全部通过，其中长矛 9 条）：
 
-- 物品是匠魂工具 `futuretinker:spear`；部件照抄匠魂 **javelin** 蓝本
-  （`small_blade` / `tool_handle` / `bow_limb` / `bow_grip`），模型直接引用
-  `tconstruct:item/tool/javelin/*` 的贴图 —— 材料变体由匠魂生成，不会紫黑。
-- **戳刺**：主手加 `forge:entity_reach` +1.5（触及 4.5）；2 格内取消（原版最短距离）；
-  不满蓄力取消（原版长矛不能提前攻击）；`CriticalHitEvent` 设 `DENY` 取消暴击；
-  结算前取消疾跑状态以规避冲刺击退。
-- **冲锋**：按住右键（`UseAnim.SPEAR`）；每 tick 在服务端扫前方锥体（1~4.5 格，±45°），
+- 物品是匠魂工具 `futuretinker:spear`；部件是 **矛头（自制）+ `tough_binding` + `tough_handle`**。
+  矛头是普通部件物品（`ToolPartItem` + `HeadMaterialStats`），部件台里用空白模板 + 材料做
+  （`tconstruct:part_builder`，pattern 纹理 `futuretinker:gui/tinker_pattern/spear_head`）；
+  图标是灰度遮罩 + 材料上色，**不**用 `tconstruct:material` 模型（那条路要每材料一张变体贴图，
+  插件自加的贴图不会被生成）。长矛本体模型引用 `tconstruct:item/tool/javelin/*`（head/handle/grip），
+  所以本体不会紫黑。
+- **戳刺**：主手加 `forge:entity_reach` +1.5（触及 4.5）；2 格内取消；不满蓄力取消；
+  `CriticalHitEvent` 设 `DENY` 取消暴击；结算前取消疾跑状态以规避冲刺击退；
+  左键方块取消（不挖方块）；`sweep` 用眼睛射线 + `box.inflate(0.125)` 扫多个目标，
+  主目标交给原版、其余补一发；左键空气时客户端发 swing 包让服务端也扫（否则放大没意义）。
+- **冲锋**：按住右键（`UseAnim.SPEAR`，有压低音效）；每 tick 在服务端扫前方锥体（1~4.5 格，±45°），
   按 `1 + 倍率 × 相对速度（格/秒）` 结算；相对速度 ≥ 4.6 才伤害，自身速度 ≥ 5.1 才击退；
   engaged 阶段且达到挑落阈值才 `stopRiding`；同一目标 10 tick 内只连一次。
 - **疲劳**：`engaged → tired → disengaged → 结束`；阶段走完自动停止使用。
 - **材料映射**：矛头耐久分档 0~4 当「等级」（正好对应原版木/石/铁/钻石/下界合金），
   等级决定倍率（0.7~1.2）、挑落阈值（14~9 格/秒）与激活延迟；
   手柄材料的 `durability` 比例修正（-0.35~+0.35）决定疲劳窗口长度（0.75~1.5 倍）。
-- 判定：25 条必需测试全过；`--fault` 仍被抓到。
+- 判定：28 条必需测试全过；`--fault` 仍被抓到。
 
-**没做的**（原版有、我们没做，别当成做了）：戳刺一次打多个目标、0.125 碰撞箱放大、
-「看方块也戳刺不挖方块」、三阶段的持矛姿势/音效。实机观感（模型是不是紫黑）也未验证。
+**没做的**：只有「三阶段的持矛姿势差异」。1.20.1 的 item 系统只有一档 `UseAnim.SPEAR`
+（压低）姿态，没有按阶段换姿态的动画/模型接口；硬做只能换模型文件假装，客户端不可验证。
+阶段的区别落在机制（tired 不挑落、disengaged 不击退）与命中音效上。实机观感也未验证。
 
 ## M2 进度（狼铠）
 
@@ -277,6 +282,13 @@ GameTest 之外单独确认，但没有客户端就只能是「代码路径 + �
 16. **匠魂工具模型可以引用匠魂自己的贴图。** 长矛的模型直接指 `tconstruct:item/tool/javelin/*`，
    材料变体（`<贴图>_<材料>`）由匠魂生成，所以没有自制部件那条紫黑路；
    但这也意味着形状是「标枪」——要真正像矛，得等有自己的一套贴图并确认变体生成路径。
+17. **自制部件不要用匠魂的 `tconstruct:material` 模型。** 那个 loader 会去找 `<贴图>_<材料>`
+   变体，而变体是匠魂给**自己的**贴图预生成的，插件自加的贴图没有 → 紫黑。
+   正确做法：部件物品用 `item/generated` + 灰度遮罩，颜色交给
+   `RegisterColorHandlersEvent.Item`（模组总线）按材料染。
+   部件本身只要一个 `tconstruct:part_builder` 配方（`pattern` + 空白模板 tag）就会出现在
+   部件台里——部件台是**按钮列表**（`PartBuilderBlockEntity` 的 `Map<Pattern, Recipe>`），
+   不是按 pattern NBT 匹配，所以新部件不需要新的 pattern 物品。
 
 ## 风险与注意事项
 

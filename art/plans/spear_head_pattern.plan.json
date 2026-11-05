@@ -1,0 +1,143 @@
+{
+  "request": {
+    "query": "spear head pattern button: flat dark silhouette for the part builder UI",
+    "form": "item",
+    "name": "spear_head_pattern",
+    "namespace": "futuretinker",
+    "width": 16,
+    "height": 16,
+    "novelty": 0.3,
+    "target_path": null,
+    "shape_policy": "planned",
+    "seed": 71,
+    "pack_format": 15
+  },
+  "descriptor": {
+    "target": "tinkers spear head (a new tool part for the spear)",
+    "semantic": "A 16x16 flat silhouette used as the part builder pattern button.",
+    "visual_identity": [
+      "flat single-colour silhouette, no shading",
+      "same silhouette as the spear head part icon"
+    ],
+    "parts": [
+      {
+        "id": "blade",
+        "meaning": "the whole spear head",
+        "required": true,
+        "paint_only": false,
+        "layer": 0,
+        "style_role": "silhouette support",
+        "recognition_terms": [
+          "spear",
+          "blade",
+          "point"
+        ],
+        "contour_intent": "elongated"
+      }
+    ],
+    "negative_identities": [
+      "sword blade",
+      "chestplate",
+      "arrow head"
+    ],
+    "orientation": "pointing up, centered",
+    "reference_strategy": "no reference: 1.20.1 has no spear at all, and a spear head has no same-class vanilla counterpart to copy. Described instead.",
+    "shape_edit_mode": "new_silhouette",
+    "reference_waiver": "The spear is a 1.21.11 item; 1.20.1 has no vanilla spear head to use as a shape authority, so the silhouette is authored here and only the material grammar is borrowed.",
+    "reference_part_map": null,
+    "target_part_map": null,
+    "class": "unknown",
+    "layer": "unknown"
+  },
+  "geometry": {
+    "width": 16,
+    "height": 16,
+    "parts": [
+      {
+        "id": "blade",
+        "meaning": "the whole spear head",
+        "required": true,
+        "paint_only": false,
+        "layer": 0,
+        "style_role": "silhouette support",
+        "recognition_terms": [
+          "spear",
+          "blade"
+        ],
+        "contour_intent": "elongated"
+      }
+    ],
+    "primitives": [
+      {
+        "id": "spear_head_mask",
+        "part_id": "blade",
+        "primitive": "custom_mask",
+        "params": {
+          "offset": [
+            0,
+            0
+          ],
+          "marker": "X",
+          "rows": [
+            ".......XX.......",
+            "......XXXX......",
+            "......XXXX......",
+            ".....XXXXXX.....",
+            ".....XXXXXX.....",
+            "....XXXXXXXX....",
+            "....XXXXXXXX....",
+            "....XXXXXXXX....",
+            "....XXXXXXXX....",
+            ".....XXXXXX.....",
+            ".....XXXXXX.....",
+            "......XXXX......",
+            "......XXXX......",
+            ".......XX.......",
+            ".......XX.......",
+            ".......XX......."
+          ]
+        },
+        "layer": 0
+      }
+    ],
+    "connections": [],
+    "constraints": [],
+    "uv_regions": [],
+    "background_transparent": true
+  },
+  "appearance": {
+    "palette": {
+      "mask": "#323232"
+    },
+    "parts": {
+      "blade": {
+        "colors": [
+          "mask"
+        ],
+        "material": "metal",
+        "shade_axis": "top_left_to_bottom_right",
+        "noise": 0.0,
+        "highlight_ratio": 0.0,
+        "marks": [],
+        "shade_mode": "bands"
+      }
+    },
+    "outline_color": "#323232",
+    "outline_width": 0,
+    "transparent_background": true,
+    "reference_sampling": "none",
+    "region_rules": [],
+    "part_reference_sampling": {},
+    "part_reference_sources": {},
+    "part_reference_composite": {},
+    "motif_policy": "model_authored",
+    "accent_colors": [],
+    "accent_budget": 0,
+    "accent_min_cluster": 1,
+    "accent_cleanup": false,
+    "accent_edge_max": 90,
+    "band_maximum_isolated": 0.2,
+    "band_maximum_step": 34
+  },
+  "references": []
+}

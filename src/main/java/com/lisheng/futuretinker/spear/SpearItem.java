@@ -73,6 +73,9 @@ public class SpearItem extends ModifiableItem {
             return InteractionResultHolder.pass(stack);
         }
         player.startUsingItem(hand);
+        if (!level.isClientSide) {
+            SpearModule.playLowerSound(player);
+        }
         return InteractionResultHolder.consume(stack);
     }
 

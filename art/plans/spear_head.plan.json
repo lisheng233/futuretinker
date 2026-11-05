@@ -1,0 +1,161 @@
+{
+  "request": {
+    "query": "spear head part: a leaf-shaped spear head with a socket, neutral grey mask for material tinting",
+    "form": "item",
+    "name": "spear_head",
+    "namespace": "futuretinker",
+    "width": 16,
+    "height": 16,
+    "novelty": 0.3,
+    "target_path": null,
+    "shape_policy": "planned",
+    "seed": 71,
+    "pack_format": 15
+  },
+  "descriptor": {
+    "target": "tinkers spear head (a new tool part for the spear)",
+    "semantic": "A 16x16 item sprite: a leaf-shaped spear head pointing up, with a short socket at the bottom. Neutral grey only -- the game multiplies this sprite by the material colour.",
+    "visual_identity": [
+      "16x16 transparent-background item sprite",
+      "reads as a spear head, not as a sword blade or a chestplate",
+      "neutral grey ramp: no hue of its own, because the material colour is applied as a tint",
+      "socket at the bottom so it reads as a detachable part"
+    ],
+    "parts": [
+      {
+        "id": "blade",
+        "meaning": "the whole spear head",
+        "required": true,
+        "paint_only": false,
+        "layer": 0,
+        "style_role": "silhouette support",
+        "recognition_terms": [
+          "spear",
+          "blade",
+          "point"
+        ],
+        "contour_intent": "elongated"
+      }
+    ],
+    "negative_identities": [
+      "sword blade",
+      "chestplate",
+      "arrow head"
+    ],
+    "orientation": "pointing up, centered",
+    "reference_strategy": "no reference: 1.20.1 has no spear at all, and a spear head has no same-class vanilla counterpart to copy. Described instead.",
+    "shape_edit_mode": "new_silhouette",
+    "reference_waiver": "The spear is a 1.21.11 item; 1.20.1 has no vanilla spear head to use as a shape authority, so the silhouette is authored here and only the material grammar is borrowed.",
+    "reference_part_map": null,
+    "target_part_map": null,
+    "class": "unknown",
+    "layer": "unknown"
+  },
+  "geometry": {
+    "width": 16,
+    "height": 16,
+    "parts": [
+      {
+        "id": "blade",
+        "meaning": "the whole spear head",
+        "required": true,
+        "paint_only": false,
+        "layer": 0,
+        "style_role": "silhouette support",
+        "recognition_terms": [
+          "spear",
+          "blade"
+        ],
+        "contour_intent": "elongated"
+      }
+    ],
+    "primitives": [
+      {
+        "id": "spear_head_mask",
+        "part_id": "blade",
+        "primitive": "custom_mask",
+        "params": {
+          "offset": [
+            0,
+            0
+          ],
+          "marker": "X",
+          "rows": [
+            ".......XX.......",
+            "......XXXX......",
+            "......XXXX......",
+            ".....XXXXXX.....",
+            ".....XXXXXX.....",
+            "....XXXXXXXX....",
+            "....XXXXXXXX....",
+            "....XXXXXXXX....",
+            "....XXXXXXXX....",
+            ".....XXXXXX.....",
+            ".....XXXXXX.....",
+            "......XXXX......",
+            "......XXXX......",
+            ".......XX.......",
+            ".......XX.......",
+            ".......XX......."
+          ]
+        },
+        "layer": 0
+      }
+    ],
+    "connections": [],
+    "constraints": [],
+    "uv_regions": [],
+    "background_transparent": true
+  },
+  "appearance": {
+    "palette": {
+      "steel_1": "#424242",
+      "steel_2": "#4E4E4E",
+      "steel_3": "#5C5C5C",
+      "steel_4": "#6C6C6C",
+      "steel_5": "#7D7D7D",
+      "steel_6": "#919191",
+      "steel_7": "#A7A7A7",
+      "steel_8": "#C1C1C1",
+      "steel_9": "#DDDDDD"
+    },
+    "parts": {
+      "blade": {
+        "colors": [
+          "steel_1",
+          "steel_2",
+          "steel_3",
+          "steel_4",
+          "steel_5",
+          "steel_6",
+          "steel_7",
+          "steel_8",
+          "steel_9"
+        ],
+        "material": "metal",
+        "shade_axis": "top_left_to_bottom_right",
+        "noise": 0.0,
+        "highlight_ratio": 0.0,
+        "marks": [],
+        "shade_mode": "gradient"
+      }
+    },
+    "outline_color": "#1E1E1E",
+    "outline_width": 1,
+    "transparent_background": true,
+    "reference_sampling": "none",
+    "region_rules": [],
+    "part_reference_sampling": {},
+    "part_reference_sources": {},
+    "part_reference_composite": {},
+    "motif_policy": "model_authored",
+    "accent_colors": [],
+    "accent_budget": 0,
+    "accent_min_cluster": 1,
+    "accent_cleanup": false,
+    "accent_edge_max": 90,
+    "band_maximum_isolated": 0.2,
+    "band_maximum_step": 34
+  },
+  "references": []
+}

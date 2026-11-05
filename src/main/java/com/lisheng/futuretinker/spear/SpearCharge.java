@@ -208,7 +208,7 @@ public final class SpearCharge {
                 target.stopRiding();
             }
             player.level().playSound(null, target.getX(), target.getY(), target.getZ(),
-                    SoundEvents.PLAYER_ATTACK_STRONG, SoundSource.PLAYERS, 0.8F, 1.0F);
+                    SoundEvents.TRIDENT_HIT, SoundSource.PLAYERS, 0.8F, 1.0F);
             ToolDamageUtil.damage(tool, 1, player, stack);
         }
     }

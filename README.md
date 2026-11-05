@@ -144,17 +144,30 @@ FMLCommonSetupEvent                         → 配置已加载
 复刻高版本原版长矛（1.21.11）的战斗机制。参照的数值来自 wiki 的长矛页面与 25w41a~rc1 的更新日志，
 代码里每个常数旁边都写了出处（`SpearCharge` 顶部注释）。
 
-**物品**：`futuretinker:spear`，匠魂工具。部件照抄匠魂 **javelin（标枪）** 蓝本：
-`small_blade`（矛头）+ `tool_handle`（手柄）+ `bow_limb` + `bow_grip`，模型直接引用
-`tconstruct:item/tool/javelin/*` 的贴图。这样材料变体是匠魂自己生成的，不会紫黑。
+**物品**：`futuretinker:spear`，匠魂工具。部件是 **矛头（本模组新增）+ 坚韧绑定结 + 坚韧手柄**：
+
+| 部件 | 来源 | 统计 | 拿到的方式 |
+| --- | --- | --- | --- |
+| `futuretinker:spear_head` | 自制（`ToolPartItem` + `HeadMaterialStats`） | head（耐久/攻击力 = 长矛的伤害与「等级」） | 部件台：空白模板 + 材料（`tconstruct:part_builder`，pattern `futuretinker:spear_head`） |
+| `tconstruct:tough_handle` | 匠魂 | handle（手柄的耐久修正 = 疲劳窗口） | 匠魂既有流程 |
+| `tconstruct:tough_binding` | 匠魂 | binding（无统计） | 匠魂既有流程 |
+
+矛头图标是**灰度遮罩 + 材料上色**（`SpearClient`，模组总线的 `RegisterColorHandlersEvent.Item`），
+模型是 `item/generated`；**没有走匠魂的 `tconstruct:material` 模型**，因为那条路要求每个材料都有一张
+`<贴图>_<材料>` 变体，插件自己加的贴图不会被生成（狼铠那轮的紫黑就是这么来的）。
+长矛本体的模型引用 `tconstruct:item/tool/javelin/*` 的贴图（head / handle / grip 三个），
+材料变体由匠魂生成，所以本体不会紫黑；形状因此是「标枪」那一套，不是另画一把矛。
 
 | 行为 | 实现在哪 | 判据（GameTest） |
 | --- | --- | --- |
 | 触及 4.5 格 | `SpearItem` 给主手加 `forge:entity_reach` +1.5 | `reachBonusIsOnMainHand` |
-| 2 格内戳不到 | `SpearCombat.onAttack` 看距离 | `jabNeedsFullChargeAndMinRange` |
+| 2 格内戳不到 | `SpearAttack.onAttack` 看距离 | `jabNeedsFullChargeAndMinRange` |
 | 必须满蓄力（不能提前攻击） | 同上，`getAttackStrengthScale < 0.999` 就取消 | 同上 |
-| 不会暴击 | `SpearCombat.onCritical` → `CriticalHitEvent` 设 `DENY` | `criticalHitIsDenied` |
-| 按住右键压低矛身 | `SpearItem.use` + `UseAnim.SPEAR` | 客户端观感，未验证 |
+| 不会暴击 | `SpearAttack.onCritical` → `CriticalHitEvent` 设 `DENY` | `criticalHitIsDenied` |
+| 不挖方块（对块也是戳刺） | `SpearAttack.onLeftClickBlock` 把 `useBlock/useItem` 设 `DENY` | `spearDoesNotMineBlocks` |
+| 一次戳多个目标 | `SpearAttack.sweep`：眼睛射线扫所有候选，主目标交给原版、其余补一发 | `sweepHitsEveryTargetInFront` |
+| 0.125 碰撞箱放大 | `sweep` 用 `box.inflate(0.125)` 做射线求交；左键空气时客户端发 swing 包让服务端也扫 | `hitboxMarginMakesNearMissesHit` |
+| 按住右键压低矛身 | `SpearItem.use` + `UseAnim.SPEAR`（+压低音效） | 客户端观感，未验证 |
 | 冲锋伤害 = 1 + 倍率 × 相对速度 | `SpearCharge.damage` / `tick` | `damageAndSpeedGatesMatchVanilla` |
 | 相对速度 ≥ 4.6 才结算 | `SpearCharge.canDamage` | 同上 |
 | 自身速度 ≥ 5.1 才击退 | `SpearCharge.canKnockback` | 同上 |
@@ -171,8 +184,13 @@ FMLCommonSetupEvent                         → 配置已加载
 - 疲劳窗口倍率 = `1 + 手柄材料的 durability 修正`（匠魂手柄是 -0.35~+0.35 的比例），夹在 0.75~1.5；
   女王史莱姆手柄窗口最长，琥珀金最短。
 
-**没做的**（别当成做了）：原版「戳刺一次打多个目标」、0.125 的目标碰撞箱放大、
-「看着方块也会戳刺而不是挖方块」、以及三阶段的持矛姿势/音效动画。
+**音效**：压低时 `PLAYER_ATTACK_SWEEP`（0.7 音高），冲锋命中 `TRIDENT_HIT`。
+原版 `item.spear.*` 这套音效在 1.20.1 不存在，只能用最接近的替代；也没有音频素材可以自制。
+
+**没做的**（别当成做了）：**三阶段的持矛姿势差异**。1.20.1 的 item 系统只有一档
+`UseAnim.SPEAR`（压低）姿态，没有按阶段换姿态的动画/模型接口；硬做只能靠换模型文件假装，
+在客户端上不可验证，所以没做——阶段的差别目前体现在**机制**（tired 不再挑落、disengaged 不再击退）
+和命中音效上。
 
 ## 已验证 / 未验证
 
@@ -181,7 +199,7 @@ FMLCommonSetupEvent                         → 配置已加载
 - `gradlew build` 退出码 0；产物 `build/libs/futuretinker-0.1.0.jar` 里 `mods.toml` 的占位符
   已展开、中文描述是合法 UTF-8、`pack.mcmeta` 的 `pack_format=15`。
 - `libs/` 里的匠魂/Mantle jar 经 `flatDir` + `fg.deobf` 正确解析，deobf 产物存在。
-- `python tools/verify_gametest.py` 通过：**25 条必需测试全过**，日志有批次计数，退出码 0。
+- `python tools/verify_gametest.py` 通过：**28 条必需测试全过**，日志有批次计数，退出码 0。
 - `python tools/verify_gametest.py --fault` 下判定失败（`1 required tests failed :(`，
   gradle 退出码 1，脚本判「注入的故障被抓住」），证明这套检查会说不。
 - 模组加载期崩溃/编译失败时脚本判定「没跑到测试」（退出码 2），不会误读成通过。
@@ -197,9 +215,11 @@ FMLCommonSetupEvent                         → 配置已加载
 - **死亡必掉一份**：`WolfArmorDropTests`。
 - **右键穿 / 剪刀脱 / 野生狼也能穿**：`WolfArmorInteractionTests`（走事件路径，不是直接写槽位）。
 - **长矛的部件/配方**：`SpearDataTests` 读运行期定义，断言 4 个部件**顺序**是
-  `small_blade / tool_handle / bow_limb / bow_grip`（顺序决定材料下标与模型 index）。
-- **长矛的戳刺规矩**：`SpearCombatTests` 三条——触及其实加在 `forge:entity_reach`、
-  不满蓄力/2 格内会被取消、`CriticalHitEvent` 被设成 `DENY`。
+  `futuretinker:spear_head / tconstruct:tough_handle / tconstruct:tough_binding`
+  （顺序决定材料下标与模型 index）。
+- **长矛的戳刺规矩**：`SpearAttackTests` 六条——触及加在 `forge:entity_reach`、
+  不满蓄力/2 格内会被取消、`CriticalHitEvent` 被设成 `DENY`、拿矛左键方块不挖、
+  一次扫到两个目标、擦边 0.06 格靠 0.125 碰撞箱放大打中（并先断言「不放大就打不中」）。
 - **长矛的冲锋**：`SpearChargeTests` 六条——伤害公式与两个速度门槛、三阶段顺序、
   手柄材料改变疲劳窗口、12.5 格/秒冲锋造成伤害并挑落骑手、前方两个目标同时被命中、
   原地不动打不出伤害。冲锋测试把战场抬到 40 格高空，避免隔壁结构的实体进入扫描范围
@@ -207,16 +227,16 @@ FMLCommonSetupEvent                         → 配置已加载
 
 **未验证（别当成已验证）**
 
-- **没有启动过客户端**：狼铠的颜色/世界内渲染、长矛的持矛姿势与模型，都只核过代码路径
-  （事件总线、图集矩形、`mc-art ingame` 渲染），**没有在真客户端里看过一眼**。
+- **没有启动过客户端**：狼铠的颜色/世界内渲染、长矛的持矛姿势与模型、矛头图标的上色与
+  部件台里那个 pattern 按钮，都只核过代码路径（事件总线、图集矩形、`mc-art ingame` 渲染），
+  **没有在真客户端里看过一眼**。
 - 没有在真实整合包环境（几十个模组、Tinkers' Tools / Dreamtinker 共存）里跑过。
-- 匠魂砧的界面里，4 格布局的实际观感（格子位置/是否被滚动条挤）没看过。
-- 长矛的模型是「借用 javelin 贴图的 `tconstruct:tool` 模型」，材质变体由匠魂生成；
-  这一条只有实机能证明（紫黑与否看不见）。
+- 匠魂砧/部件台的界面观感（格子位置、pattern 按钮是否出现在列表里）没看过。
+- 长矛与矛头的模型/贴图都是「借匠魂 javelin 的贴图 + 自制灰度图标」；材质变体与染色只有实机能证明。
 - 没有验证「关掉模块后存档/配方不残留引用」。
 
 ## 后续（M4 起）
 
-长矛的机制已按原版接完（M4/M5 的核心），剩下的都是「原版还有、我们没做」的细节
-（戳刺多目标、碰撞箱放大、姿势/音效）和实机观感——见 PLAN.md 的里程碑表。
+长矛的机制已按原版接完（M4/M5 的核心），剩下的只有「三阶段的持矛姿势」这一项
+（1.20.1 没有对应动画接口）和实机观感——见 PLAN.md 的里程碑表。
 新增模块时必须同时加配置开关，否则 `ModuleRegistry.validateIds()` 会在启动时直接失败。
