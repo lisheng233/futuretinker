@@ -2,6 +2,7 @@ package com.lisheng.futuretinker.module;
 
 import com.lisheng.futuretinker.FutureTinker;
 import com.lisheng.futuretinker.config.FutureTinkerConfig;
+import com.lisheng.futuretinker.mace.MaceModule;
 import com.lisheng.futuretinker.spear.SpearModule;
 import com.lisheng.futuretinker.wolfarmor.WolfArmorModule;
 import java.util.ArrayList;
@@ -27,7 +28,7 @@ import net.minecraftforge.registries.RegisterEvent;
  * 记录值存进 {@link #gatedState(String)}，这是 GameTest 唯一的证据来源。</p>
  */
 public final class ModuleRegistry {
-    private static final List<FtModule> MODULES = List.of(new WolfArmorModule(), new SpearModule());
+    private static final List<FtModule> MODULES = List.of(new WolfArmorModule(), new SpearModule(), new MaceModule());
 
     /** 模块 id -> 注册阶段读到的开关值。空 = 注册阶段还没跑到。 */
     private static final Map<String, Boolean> GATED = new LinkedHashMap<>();

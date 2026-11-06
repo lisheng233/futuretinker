@@ -68,6 +68,9 @@ public final class FutureTinkerConfig {
                 "匠魂化长矛：相对速度伤害、击落骑乘、持矛疲劳三件套。",
                 "矛头材料决定冲锋系数与击落阈值，手柄材料决定疲劳窗口。");
 
+        defineModule(builder, "mace", true,
+                "匠魂化狼牙棒：钩扯流血（读目标速度）、棒头形态决定的横扫、手柄惯性。",
+                "棒头读硬度/韧性两条材料统计，手柄读重量（耐久修正）。");
         builder.pop();
         SPEC = builder.build();
     }
@@ -78,7 +81,6 @@ public final class FutureTinkerConfig {
             boolean defaultEnabled, String... comments) {
         builder.comment(comments).push(moduleId);
         SWITCHES.put(moduleId, builder.comment("是否启用该模块。").define("enabled", defaultEnabled));
-        builder.pop();
     }
 
     /**
