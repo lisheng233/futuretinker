@@ -1,7 +1,7 @@
 {
   "parent": "item/handheld",
   "textures": {
-    "layer0": "tconstruct:item/tool/sledge_hammer/head",
-    "layer1": "tconstruct:item/tool/sledge_hammer/handle"
+    "layer0": "futuretinker:item/mace_head_layer",
+    "layer1": "futuretinker:item/mace_handle_layer"
   }
 }

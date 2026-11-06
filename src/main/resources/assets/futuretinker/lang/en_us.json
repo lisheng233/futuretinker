@@ -11,5 +11,14 @@
   "item.futuretinker.spear_head_red_sand_cast": "Spear Head Red Sand Cast",
   "pattern.futuretinker.spear_head": "Spear Head",
   "material.futuretinker.charge": "Charge coefficient: %s",
-  "material.futuretinker.charge.description": "How much of the charge damage comes from speed."
+  "material.futuretinker.charge.description": "How much of the charge damage comes from speed.",
+  "item.futuretinker.mace": "Mace",
+  "item.futuretinker.mace.description": "The head sets the spikes: hard ones pierce armour, tough ones control, light ones hit fast. A moving target gets torn open.",
+  "item.futuretinker.mace_head": "Mace Head",
+  "item.futuretinker.mace_head.description": "More hardness means more armour pierce and a narrower sweep; more toughness leans to control; both low means faster swings.",
+  "material.futuretinker.hardness": "Spike hardness: %s",
+  "material.futuretinker.hardness.description": "Drives armour piercing and how tight the sweep is, and slows the swing.",
+  "material.futuretinker.toughness": "Spike toughness: %s",
+  "material.futuretinker.toughness.description": "Drives the control effect and the sweep angle.",
+  "effect.futuretinker.bleed": "Hook Bleed"
 }

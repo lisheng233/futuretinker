@@ -1,0 +1,47 @@
+{
+  "request": { "query": "mace icon: spiked head on a handle", "form": "item", "name": "mace_head_layer", "namespace": "futuretinker", "width": 16, "height": 16, "novelty": 0.3, "target_path": null, "shape_policy": "planned", "seed": 74, "pack_format": 15 },
+  "descriptor": {
+    "target": "the mace spike head (one layer of the mace icon)",
+    "semantic": "A 16x16 spiked ball, neutral grey so the game tints it with the head material.",
+    "visual_identity": ["chunky spiked ball", "neutral grey ramp", "reads as a mace head"],
+    "parts": [{ "id": "shape", "meaning": "spiked head", "required": true, "paint_only": false, "layer": 0, "style_role": "silhouette support", "recognition_terms": ["mace", "spikes", "ball"], "contour_intent": "compact" }],
+    "negative_identities": ["sword blade", "spear tip"],
+    "orientation": "centered above the handle",
+    "reference_strategy": "no reference: authored geometry",
+    "shape_edit_mode": "new_silhouette",
+    "reference_waiver": "No vanilla mace exists in 1.20.1; the spiked ball is authored here.",
+    "reference_part_map": null, "target_part_map": null, "class": "unknown", "layer": "unknown"
+  },
+  "geometry": {
+    "width": 16, "height": 16,
+    "parts": [{ "id": "shape", "meaning": "spiked head", "required": true, "paint_only": false, "layer": 0, "style_role": "silhouette support", "recognition_terms": ["mace"], "contour_intent": "compact" }],
+    "primitives": [{ "id": "mask", "part_id": "shape", "primitive": "custom_mask", "params": { "offset": [0, 0], "marker": "X", "rows": [
+      "................",
+      "....X..XX..X....",
+      "...XXXXXXXXXX...",
+      "..XXXXXXXXXXXX..",
+      ".XXXXXXXXXXXXXX.",
+      ".XXXXXXXXXXXXXX.",
+      "..XXXXXXXXXXXX..",
+      "...XXXXXX.XXX...",
+      "....X..XX..X....",
+      "................",
+      "................",
+      "................",
+      "................",
+      "................",
+      "................",
+      "................"
+    ] }, "layer": 0 }],
+    "connections": [], "constraints": [], "uv_regions": [], "background_transparent": true
+  },
+  "appearance": {
+    "palette": { "g1": "#6E6E6E", "g2": "#828282", "g3": "#969696", "g4": "#AAAAAA", "g5": "#BEBEBE" },
+    "parts": { "shape": { "colors": ["g1", "g2", "g3", "g4", "g5"], "material": "metal", "shade_axis": "top_left_to_bottom_right", "noise": 0.0, "highlight_ratio": 0.0, "marks": [], "shade_mode": "gradient" } },
+    "outline_color": "#3A3A3A", "outline_width": 1, "transparent_background": true,
+    "reference_sampling": "none", "region_rules": [], "part_reference_sampling": {}, "part_reference_sources": {}, "part_reference_composite": {}, "motif_policy": "model_authored",
+    "accent_colors": [], "accent_budget": 0, "accent_min_cluster": 1, "accent_cleanup": false, "accent_edge_max": 90,
+    "band_maximum_isolated": 0.1, "band_maximum_step": 30
+  },
+  "references": []
+}

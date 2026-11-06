@@ -1,0 +1,18 @@
+{
+  "tool": "futuretinker:mace",
+  "text": [
+    {
+      "text": "The Mace is a heavy two-part weapon: a spiked head and a handle."
+    },
+    {
+      "text": "Hitting a moving target opens a bleed (it reads the TARGET's speed, the opposite of the spear). A full cooldown swing sweeps around you; how wide depends on the head material.",
+      "paragraph": true
+    }
+  ],
+  "properties": [
+    "2 parts: head / handle",
+    "Bleed on moving targets",
+    "Form-driven sweep",
+    "Heavy handles slow you down"
+  ]
+}

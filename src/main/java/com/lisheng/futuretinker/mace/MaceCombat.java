@@ -36,7 +36,7 @@ import slimeknights.tconstruct.tools.stats.HandleMaterialStats;
  */
 public final class MaceCombat {
     /** 钩扯的触发速度（格/秒）：目标在动才算。 */
-    public static final float HOOK_MIN_SPEED = 2.0F;
+    public static final float HOOK_MIN_SPEED = 0.8F;
     public static final float HOOK_STRONG_SPEED = 6.0F;
     public static final double SWEEP_MARGIN = 0.125D;
 
