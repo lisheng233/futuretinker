@@ -118,8 +118,20 @@ public final class MaceCombat {
         float targetSpeed = horizontalSpeed(target);
         if (targetSpeed >= HOOK_MIN_SPEED) {
             int amplifier = targetSpeed >= HOOK_STRONG_SPEED ? 2 : 1;
-            int duration = 60 + Math.round(targetSpeed * 10.0F);
+            int duration = bleedDuration(targetSpeed);
             target.addEffect(new MobEffectInstance(MaceContent.bleed(), duration, amplifier, false, false));
+            // 命中瞬间的表现：喷一小片血粒子 + 一声撕裂
+            if (player.level() instanceof net.minecraft.server.level.ServerLevel level) {
+                level.sendParticles(net.minecraft.core.particles.ParticleTypes.DAMAGE_INDICATOR,
+                        target.getX(), target.getY() + target.getBbHeight() * 0.6D, target.getZ(),
+                        8, 0.3D, 0.3D, 0.3D, 0.05D);
+                level.playSound(null, target.getX(), target.getY(), target.getZ(),
+                        net.minecraft.sounds.SoundEvents.PLAYER_ATTACK_CRIT,
+                        net.minecraft.sounds.SoundSource.PLAYERS, 0.7F, 0.8F);
+                level.playSound(null, target.getX(), target.getY(), target.getZ(),
+                        net.minecraft.sounds.SoundEvents.SLIME_SQUISH, 
+                        net.minecraft.sounds.SoundSource.PLAYERS, 0.5F, 1.3F);
+            }
         }
 
         switch (form) {

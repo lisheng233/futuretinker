@@ -1,0 +1,115 @@
+{
+  "request": {
+    "query": "bleed status effect icon: a single blood drop",
+    "form": "item",
+    "name": "bleed",
+    "namespace": "futuretinker",
+    "width": 18,
+    "height": 18,
+    "novelty": 0.3,
+    "target_path": null,
+    "shape_policy": "planned",
+    "seed": 73,
+    "pack_format": 15
+  },
+  "descriptor": {
+    "target": "the bleed mob effect icon (HUD status bar)",
+    "semantic": "An 18x18 status icon: one red blood drop, readable at 9x9 in the HUD.",
+    "visual_identity": ["18x18 status icon", "reads as blood/bleeding", "dark red rim, bright red core"],
+    "parts": [
+      { "id": "drop", "meaning": "the blood drop", "required": true, "paint_only": false, "layer": 0,
+        "style_role": "silhouette support", "recognition_terms": ["blood", "drop"], "contour_intent": "compact" }
+    ],
+    "negative_identities": ["potion", "heart", "water drop"],
+    "orientation": "centered",
+    "reference_strategy": "no reference: a status icon is a UI symbol, not a world asset",
+    "shape_edit_mode": "new_silhouette",
+    "reference_waiver": "A HUD status icon has no in-game counterpart to copy; the drop silhouette is authored here.",
+    "reference_part_map": null,
+    "target_part_map": null,
+    "class": "unknown",
+    "layer": "unknown"
+  },
+  "geometry": {
+    "width": 18,
+    "height": 18,
+    "parts": [
+      { "id": "drop", "meaning": "the blood drop", "required": true, "paint_only": false, "layer": 0,
+        "style_role": "silhouette support", "recognition_terms": ["blood", "drop"], "contour_intent": "compact" }
+    ],
+    "primitives": [
+      {
+        "id": "drop_mask",
+        "part_id": "drop",
+        "primitive": "custom_mask",
+        "params": {
+          "offset": [0, 0],
+          "marker": "X",
+          "rows": [
+            "..................",
+            "........XX........",
+            "........XX........",
+            ".......XXXX.......",
+            ".......XXXX.......",
+            "......XXXXXX......",
+            "......XXXXXX......",
+            ".....XXXXXXXX.....",
+            ".....XXXXXXXX.....",
+            "....XXXXXXXXXX....",
+            "....XXXXXXXXXX....",
+            "....XXXXXXXXXX....",
+            ".....XXXXXXXX.....",
+            ".....XXXXXXXX.....",
+            "......XXXXXX......",
+            ".......XXXX.......",
+            "..................",
+            ".................."
+          ]
+        },
+        "layer": 0
+      }
+    ],
+    "connections": [],
+    "constraints": [],
+    "uv_regions": [],
+    "background_transparent": true
+  },
+  "appearance": {
+    "palette": {
+      "b1": "#5E0F0F",
+      "b2": "#7A1414",
+      "b3": "#96201F",
+      "b4": "#B32C28",
+      "b5": "#D03A31",
+      "b6": "#E8554A"
+    },
+    "parts": {
+      "drop": {
+        "colors": ["b1", "b2", "b3", "b4", "b5", "b6"],
+        "material": "metal",
+        "shade_axis": "top_left_to_bottom_right",
+        "noise": 0.0,
+        "highlight_ratio": 0.0,
+        "marks": [],
+        "shade_mode": "gradient"
+      }
+    },
+    "outline_color": "#3A0808",
+    "outline_width": 1,
+    "transparent_background": true,
+    "reference_sampling": "none",
+    "region_rules": [],
+    "part_reference_sampling": {},
+    "part_reference_sources": {},
+    "part_reference_composite": {},
+    "motif_policy": "model_authored",
+    "accent_colors": [],
+    "accent_budget": 0,
+    "accent_min_cluster": 1,
+    "accent_cleanup": false,
+    "accent_edge_max": 90,
+    "band_maximum_isolated": 0.1,
+    "band_maximum_step": 34
+  },
+  "references": []
+}
