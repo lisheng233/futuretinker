@@ -174,18 +174,49 @@ public final class MaceCombat {
 
     // ===== 材料读取 =====
 
+    /**
+     * 内置的经典材料表：材料**没有**声明 {@code futuretinker:hardness/toughness} 时用这里的值。
+     *
+     * <p>优先顺序：材料数据 > 这张表 > 默认值 1.0。表里只放匠魂自带的经典材料，
+     * 其它模组的材料一律走默认值 —— 它们没数据也能用，只是形态中性。</p>
+     */
+    private static final java.util.Map<String, float[]> KNOWN = java.util.Map.ofEntries(
+            java.util.Map.entry("tconstruct:manyullyn", new float[] {8.0F, 2.0F}),      // 玛玉灵：硬
+            java.util.Map.entry("tconstruct:cobalt", new float[] {6.5F, 1.5F}),         // 钴：硬
+            java.util.Map.entry("tconstruct:hepatizon", new float[] {7.0F, 2.0F}),      // 铁钴合金：硬
+            java.util.Map.entry("tconstruct:netherite", new float[] {7.0F, 3.0F}),      // 下界合金：硬
+            java.util.Map.entry("tconstruct:iron", new float[] {1.5F, 4.0F}),           // 铁：韧
+            java.util.Map.entry("tconstruct:slimesteel", new float[] {2.0F, 3.5F}),     // 黏钢：韧
+            java.util.Map.entry("tconstruct:pig_iron", new float[] {2.2F, 3.2F}),       // 生铁：韧
+            java.util.Map.entry("tconstruct:rose_gold", new float[] {2.5F, 2.0F}),      // 玫瑰金：中性偏韧
+            java.util.Map.entry("tconstruct:amethyst_bronze", new float[] {3.0F, 2.5F}), // 紫水晶青铜：中性
+            java.util.Map.entry("tconstruct:stone", new float[] {1.0F, 1.0F}),          // 石头：中性
+            java.util.Map.entry("tconstruct:flint", new float[] {0.5F, 0.5F}),          // 燧石：轻
+            java.util.Map.entry("tconstruct:wood", new float[] {0.4F, 0.4F}),           // 木：轻
+            java.util.Map.entry("tconstruct:bone", new float[] {0.6F, 0.6F}));          // 骨头：轻
+
     public static float hardness(IToolStackView tool) {
         return stats(tool, 0, HardnessMaterialStats.ID, HardnessMaterialStats.class)
                 .map(HardnessMaterialStats::hardness)
                 .filter(value -> value > 0.0F)
-                .orElse(HardnessMaterialStats.DEFAULT);
+                .orElseGet(() -> known(tool, 0));
     }
 
     public static float toughness(IToolStackView tool) {
         return stats(tool, 0, ToughnessMaterialStats.ID, ToughnessMaterialStats.class)
                 .map(ToughnessMaterialStats::toughness)
                 .filter(value -> value > 0.0F)
-                .orElse(ToughnessMaterialStats.DEFAULT);
+                .orElseGet(() -> known(tool, 1));
+    }
+
+    /** 内置表里那一列（0=硬度，1=韧性），没有就返回默认值。 */
+    private static float known(IToolStackView tool, int column) {
+        MaterialNBT materials = tool.getMaterials();
+        if (materials.size() == 0) {
+            return HardnessMaterialStats.DEFAULT;
+        }
+        float[] entry = KNOWN.get(materials.get(0).getVariant().getId().toString());
+        return entry == null ? HardnessMaterialStats.DEFAULT : entry[column];
     }
 
     static <T extends IMaterialStats> Optional<T> stats(

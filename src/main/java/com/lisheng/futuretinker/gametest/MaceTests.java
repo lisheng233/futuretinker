@@ -61,10 +61,19 @@ public final class MaceTests {
     @PrefixGameTestTemplate(false)
     @GameTest(templateNamespace = FutureTinker.MOD_ID, template = "empty3x3x3", required = true)
     public static void formComesFromHeadStats(GameTestHelper helper) {
-        ToolStack tool = ToolStack.from(mace("tconstruct:iron", "tconstruct:wood"));
-        // 铁没有声明硬度/韧性 → 两根默认值 1.0 → NEUTRAL
-        helper.assertTrue(MaceCombat.form(tool) == MaceCombat.Form.NEUTRAL,
-                "没有硬度/韧性数据时应为 NEUTRAL，实际 " + MaceCombat.form(tool));
+        // 材料没声明硬度/韧性时走内置表：铁 = 韧性（控制），玛玉灵 = 硬度（穿甲），燧石 = 轻质
+        helper.assertTrue(MaceCombat.form(ToolStack.from(mace("tconstruct:iron", "tconstruct:wood")))
+                        == MaceCombat.Form.TOUGH,
+                "铁应该是韧形态（控制型），实际 "
+                        + MaceCombat.form(ToolStack.from(mace("tconstruct:iron", "tconstruct:wood"))));
+        helper.assertTrue(MaceCombat.form(ToolStack.from(mace("tconstruct:manyullyn", "tconstruct:wood")))
+                        == MaceCombat.Form.HARD,
+                "玛玉灵应该是硬形态（穿甲），实际 "
+                        + MaceCombat.form(ToolStack.from(mace("tconstruct:manyullyn", "tconstruct:wood"))));
+        helper.assertTrue(MaceCombat.form(ToolStack.from(mace("tconstruct:flint", "tconstruct:wood")))
+                        == MaceCombat.Form.LIGHT,
+                "燧石应该是轻质形态（快打），实际 "
+                        + MaceCombat.form(ToolStack.from(mace("tconstruct:flint", "tconstruct:wood"))));
         helper.assertTrue(MaceCombat.sweepAngle(MaceCombat.Form.HARD) < MaceCombat.sweepAngle(MaceCombat.Form.LIGHT),
                 "横扫角度应该：高硬度更窄、轻质更宽");
         helper.succeed();

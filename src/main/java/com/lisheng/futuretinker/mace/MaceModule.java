@@ -29,6 +29,10 @@ public final class MaceModule implements FtModule {
     @Override
     public void attach(IEventBus modBus) {
         MinecraftForge.EVENT_BUS.addListener(MaceCombat::onAttack);
+        // 客户端上色（服务器端不加载这个类）
+        net.minecraftforge.fml.DistExecutor.unsafeRunWhenOn(
+                net.minecraftforge.api.distmarker.Dist.CLIENT,
+                () -> () -> com.lisheng.futuretinker.mace.MaceClient.register(modBus));
         FutureTinker.LOGGER.info("Future Tinker: 狼牙棒已接入（钩扯流血 + 形态横扫 + 手柄惯性）");
     }
 
