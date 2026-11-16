@@ -1,0 +1,11 @@
+{
+  "type": "tconstruct:molding_table",
+  "material": {
+    "tag": "tconstruct:casts/sand"
+  },
+  "pattern": {
+    "type": "tconstruct:material",
+    "item": "futuretinker:mace_head"
+  },
+  "result": "futuretinker:mace_head_sand_cast"
+}

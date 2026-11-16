@@ -12,23 +12,20 @@ pieces are contiguous segments of one long object:
 
 Each piece is desaturated to grey but keeps its luminance, because the game multiplies
 the sprite by the three Tinker's material colours (head / handle / binding). The part
-icon, the part-builder button (hollow, as the GUI wants) and the three casts (a block
-with the cone shaped cavity) are derived from the same pixels.
+icon and the part-builder button (hollow, as the GUI wants) are derived from the same
+pixels. The casts are drawn separately by `cast_art.py` (the cavity is much larger than
+the part icon, like TConstruct's own broad-blade cast).
 
 Deterministic: rerun and you get the same files.
 """
 
 import pathlib
 
-from PIL import Image, ImageColor
+from PIL import Image
 
 ART = pathlib.Path(__file__).resolve().parent
 SRC = ART / "refs_vanilla_spear.png"
 RES = ART.parent / "src/main/resources/assets/futuretinker/textures"
-
-GOLD = ["#EDAD17", "#F4C730", "#FCE24E", "#FDF55F", "#FEFFBD"]
-SAND = ["#D1BA8A", "#D5C496", "#DACFA3", "#E3DBB0", "#E7E4BB", "#EDEBCB"]
-RED_SAND = ["#AC5712", "#B2601F", "#BF6721", "#CB6E24", "#D2752B", "#D97B30"]
 
 BUTT_END = 0.16
 SHAFT_END = 0.48
@@ -91,25 +88,6 @@ def outline_of(image):
     return out
 
 
-def cast_image(mask, palette):
-    image = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
-    for y in range(16):
-        for x in range(16):
-            if mask.getpixel((x, y))[3] > 0:
-                continue  # the cavity stays transparent
-            edge = any(0 <= x + dx < 16 and 0 <= y + dy < 16 and mask.getpixel((x + dx, y + dy))[3] > 0
-                       for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
-            border = x in (0, 15) or y in (0, 15)
-            if edge:
-                colour = palette[0]
-            elif border:
-                colour = palette[1]
-            else:
-                colour = palette[-1] if (x + y) % 3 else palette[-2]
-            image.putpixel((x, y), (*ImageColor.getrgb(colour), 255))
-    return image
-
-
 def main():
     pixels = load_pixels()
     butt, direction, length_sq = axis(pixels)
@@ -127,13 +105,7 @@ def main():
     head.save(RES / "item/spear_head.png")
     outline_of(head).save(RES / "gui/tinker_pattern/spear_head.png")
 
-    for palette, path in ((GOLD, "item/cast/spear_head.png"),
-                          (SAND, "item/sand_cast/spear_head.png"),
-                          (RED_SAND, "item/red_sand_cast/spear_head.png")):
-        (RES / path).parent.mkdir(parents=True, exist_ok=True)
-        cast_image(head, palette).save(RES / path)
-
-    print("wrote 3 layers + part icon + pattern + 3 casts")
+    print("wrote 3 layers + part icon + pattern")
 
 
 if __name__ == "__main__":

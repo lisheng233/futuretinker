@@ -10,7 +10,8 @@ import net.minecraftforge.registries.RegisterEvent;
  *
  * <p>生命周期由 {@link ModuleRegistry} 统一驱动，模块自己不订阅总线：</p>
  * <ol>
- *   <li>{@link #attach(IEventBus)} —— 模组构造阶段，只挂监听器，<b>不能读配置</b>，也不能注册内容。</li>
+ *   <li>{@link #attach(IEventBus)} —— 模组构造阶段调用，<b>只有模块被启用时</b>才会调用；
+ *       只允许挂监听器，不能注册内容。</li>
  *   <li>{@link #registerRegistries(RegisterEvent)} —— 只有模块被启用时才会被调用，
  *       配置此时一定已加载。注册名一律走 {@code futuretinker:} 前缀。</li>
  *   <li>{@link #commonSetup(FMLCommonSetupEvent)} —— 只有模块被启用时才会被调用。</li>
@@ -20,7 +21,7 @@ public interface FtModule {
     /** 模块 id，同时是配置节名与注册名后缀。必须是小写、非空。 */
     String id();
 
-    /** 模组构造阶段调用（无论模块是否启用）。只允许挂监听器。 */
+    /** 模组构造阶段调用（仅当模块启用）。只允许挂监听器。 */
     default void attach(IEventBus modBus) {}
 
     /** 模块启用时的注册表写入阶段。 */

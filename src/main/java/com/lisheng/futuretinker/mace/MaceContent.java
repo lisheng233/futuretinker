@@ -9,10 +9,12 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.RegisterEvent;
 import slimeknights.tconstruct.library.tools.definition.ToolDefinition;
+import slimeknights.tconstruct.library.tools.part.IMaterialItem;
+import slimeknights.tconstruct.library.tools.part.PartCastItem;
 import slimeknights.tconstruct.library.tools.part.ToolPartItem;
 import slimeknights.tconstruct.tools.stats.HeadMaterialStats;
 
-/** 狼牙棒的物品与 effect：棒头（新部件）+ 坚韧手柄，外加一个「流血」效果。 */
+/** 狼牙棒的物品与 effect：棒头（新部件）+ 三种铸模 + 坚韧手柄，外加一个「流血」效果。 */
 public final class MaceContent {
     public static final String ID = "mace";
     public static final String HEAD_ID = "mace_head";
@@ -22,6 +24,9 @@ public final class MaceContent {
 
     private static Item mace;
     private static Item maceHead;
+    private static Item maceHeadCast;
+    private static Item maceHeadSandCast;
+    private static Item maceHeadRedSandCast;
     private static MobEffect bleed;
 
     private MaceContent() {}
@@ -33,7 +38,14 @@ public final class MaceContent {
         event.register(Registries.ITEM, FutureTinker.id(ID),
                 () -> mace = new MaceItem(new Item.Properties().stacksTo(1), DEFINITION));
         event.register(Registries.ITEM, FutureTinker.id(HEAD_ID),
-                () -> maceHead = new ToolPartItem(new Item.Properties(), HeadMaterialStats.ID));
+                () -> maceHead = new MaceHeadItem(new Item.Properties()));
+        // 三种铸模，走匠魂的 PartCastItem（金可反复用，沙子/红沙一次性）
+        event.register(Registries.ITEM, FutureTinker.id(HEAD_ID + "_cast"),
+                () -> maceHeadCast = new PartCastItem(new Item.Properties(), MaceContent::maceHeadPart));
+        event.register(Registries.ITEM, FutureTinker.id(HEAD_ID + "_sand_cast"),
+                () -> maceHeadSandCast = new PartCastItem(new Item.Properties(), MaceContent::maceHeadPart));
+        event.register(Registries.ITEM, FutureTinker.id(HEAD_ID + "_red_sand_cast"),
+                () -> maceHeadRedSandCast = new PartCastItem(new Item.Properties(), MaceContent::maceHeadPart));
     }
 
     static void registerEffects(RegisterEvent event) {
@@ -51,6 +63,15 @@ public final class MaceContent {
         return Objects.requireNonNull(maceHead, "Future Tinker: 棒头还没注册");
     }
 
+    public static IMaterialItem maceHeadPart() {
+        return (IMaterialItem) maceHead();
+    }
+
+    public static List<Item> casts() {
+        return List.of(Objects.requireNonNull(maceHeadCast), Objects.requireNonNull(maceHeadSandCast),
+                Objects.requireNonNull(maceHeadRedSandCast));
+    }
+
     public static MobEffect bleed() {
         return Objects.requireNonNull(bleed, "Future Tinker: 流血效果还没注册");
     }
@@ -60,6 +81,7 @@ public final class MaceContent {
     }
 
     public static List<Item> items() {
-        return List.of(mace(), maceHead());
+        return List.of(mace(), maceHead(), Objects.requireNonNull(maceHeadCast),
+                Objects.requireNonNull(maceHeadSandCast), Objects.requireNonNull(maceHeadRedSandCast));
     }
 }

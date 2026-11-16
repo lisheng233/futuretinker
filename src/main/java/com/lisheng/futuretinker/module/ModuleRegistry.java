@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -33,6 +34,9 @@ public final class ModuleRegistry {
     /** 模块 id -> 注册阶段读到的开关值。空 = 注册阶段还没跑到。 */
     private static final Map<String, Boolean> GATED = new LinkedHashMap<>();
 
+    /** 构造阶段实际挂过监听器的模块。关掉的模块不能出现在这里。 */
+    private static final Set<String> ATTACHED = new LinkedHashSet<>();
+
     private static boolean announced;
 
     private ModuleRegistry() {}
@@ -49,15 +53,31 @@ public final class ModuleRegistry {
         return Optional.ofNullable(GATED.get(moduleId));
     }
 
+    /**
+     * 构造阶段是否给这个模块挂了监听器。
+     *
+     * <p>关掉的模块必须为 false：它的物品没注册，监听器里访问物品就会抛异常
+     * （攻击/交互事件全在 Forge 总线上，没有「模块关掉就不触发」这回事）。</p>
+     */
+    public static boolean isAttached(String moduleId) {
+        return ATTACHED.contains(moduleId);
+    }
+
     /** 模组构造阶段调用一次。 */
     public static void init(IEventBus modBus) {
         validateIds();
         modBus.addListener(ModuleRegistry::onRegisterRegistries);
         modBus.addListener(ModuleRegistry::onCommonSetup);
         for (FtModule module : MODULES) {
-            module.attach(modBus);
+            // 监听器也只能挂启用的模块：Forge 总线的事件与注册表无关，模块关掉后
+            // 监听器照样会跑，而它访问的物品并不存在。
+            if (FutureTinkerConfig.isModuleEnabled(module.id())) {
+                module.attach(modBus);
+                ATTACHED.add(module.id());
+            }
         }
-        FutureTinker.LOGGER.info("Future Tinker: 声明了 {} 个模块 {}", MODULES.size(), ids());
+        FutureTinker.LOGGER.info("Future Tinker: 声明了 {} 个模块 {}，挂载监听器 {}",
+                MODULES.size(), ids(), ATTACHED);
     }
 
     private static void onRegisterRegistries(RegisterEvent event) {

@@ -25,7 +25,7 @@ import net.minecraftforge.gametest.PrefixGameTestTemplate;
  * <p>三个测试查三个不同的失败模式，不是同一个事实的三遍：</p>
  * <ol>
  *   <li>{@link #gateIsWiredToConfig}——注册阶段没跑到 / 早期读取与 Forge 读取不一致 /
- *       判定说「关」但注册没停；</li>
+ *       判定说「关」但注册没停 / 关掉的模块还挂着事件监听器；</li>
  *   <li>{@link #moduleIdsAreDeclaredAndUnique}——模块 id 违反契约（大写、重复、没有配置开关）；</li>
  *   <li>{@link #faultProbe}——故障探针，只在 {@code -PftFault} 下失败。</li>
  * </ol>
@@ -59,6 +59,13 @@ public final class ModuleGateTests {
             boolean gatedOn = gated.orElse(false);
             helper.assertTrue(gatedOn == configuredNow,
                     "模块 " + id + " 闸门读到 " + gatedOn + "，配置是 " + configuredNow + "：闸门没接在配置上");
+
+            // 监听器也必须跟着开关走：关掉的模块物品没注册，监听器再跑就会抛异常
+            // （原症状：关掉 mace/spear 后玩家一攻击就炸）。
+            boolean attached = ModuleRegistry.isAttached(id);
+            helper.assertTrue(attached == configuredNow,
+                    "模块 " + id + " 配置 enabled=" + configuredNow + "，监听器挂载=" + attached
+                            + "：关掉的模块不能挂事件监听器");
 
             // 关掉的模块，它的物品必须一个都不在注册表里（这是「模块可独立启停」的硬证据）。
             for (ResourceLocation itemId : module.contentItems()) {

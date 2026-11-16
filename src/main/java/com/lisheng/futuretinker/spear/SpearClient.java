@@ -1,5 +1,14 @@
 package com.lisheng.futuretinker.spear;
 
+import com.lisheng.futuretinker.FutureTinker;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -13,7 +22,7 @@ import slimeknights.tconstruct.library.tools.nbt.MaterialNBT;
 import slimeknights.tconstruct.library.tools.part.IMaterialItem;
 
 /**
- * 长矛的客户端表现：图标按材料上色。
+ * 长矛的客户端表现：图标/手持模型按材料上色。
  *
  * <p>三张贴图分别是矛头 / 矛杆 / 绑定结，对应材料表下标 0/1/2
  * （{@code item/generated} 的第 i 层 tintindex 就是 i，见 {@code ItemModelGenerator}），
@@ -24,28 +33,38 @@ import slimeknights.tconstruct.library.tools.part.IMaterialItem;
  */
 @OnlyIn(Dist.CLIENT)
 public final class SpearClient {
+    /** 手持时用的 32×32 in-hand 模型；GUI/掉落物仍用 16×16 图标模型。 */
+    private static final ModelResourceLocation HAND_MODEL =
+            new ModelResourceLocation(FutureTinker.id("spear_in_hand"), "inventory");
+
     private SpearClient() {}
 
     public static void register(IEventBus modBus) {
         modBus.addListener(SpearClient::onRegisterColors);
         // 冲锋输入（本地计时 + 发包）
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener(SpearClientInput::onClientTick);
-        // 物品 predicate 必须等物品真的注册完再登记：模组构造阶段物品还不存在，
-        // 那时候调用 SpearContent.spear() 会 NPE，整个模组加载失败（客户端实测过一次）。
-        modBus.addListener(SpearClient::onClientSetup);
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener(
+                (net.minecraftforge.client.event.ClientPlayerNetworkEvent.LoggingOut event) ->
+                        SpearClientState.clear());
     }
 
-    private static void onClientSetup(net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent event) {
-        event.enqueueWork(() -> {
-            net.minecraft.client.renderer.item.ItemProperties.register(SpearContent.spear(),
-                    new net.minecraft.resources.ResourceLocation("futuretinker", "spear_charge"),
-                    (stack, level, entity, seed) -> SpearClientInput.chargeTicks());
-            // 戳刺的前冲：原版 1.21 的矛是「刺」而不是「挥」，1.20.1 没有物品动画接口，
-            // 所以用攻击动画进度（LivingEntity#getAttackAnim）切一个前冲的 display 模型出来。
-            net.minecraft.client.renderer.item.ItemProperties.register(SpearContent.spear(),
-                    new net.minecraft.resources.ResourceLocation("futuretinker", "spear_attack"),
-                    (stack, level, entity, seed) -> entity == null ? 0.0F : entity.getAttackAnim(0.0F));
-        });
+    /**
+     * 显式用手持模型渲染长矛。不能靠 ItemProperties/overrides 切模型：GUI 的部分
+     * 渲染路径也会把玩家实体传进来，导致「手持」predicate 在物品栏里也为真，库存里
+     * 显示成又长又细的手持图。这里只在第一/第三人称的渲染路径调用。
+     */
+    public static void renderHandModel(LivingEntity entity, ItemStack stack, ItemDisplayContext context,
+            boolean leftHand, PoseStack poseStack, MultiBufferSource buffer, int light) {
+        Minecraft minecraft = Minecraft.getInstance();
+        BakedModel model = minecraft.getModelManager().getModel(HAND_MODEL);
+        if (model == minecraft.getModelManager().getMissingModel()) {
+            minecraft.getItemRenderer().renderStatic(entity, stack, context, leftHand, poseStack,
+                    buffer, entity.level(), light, OverlayTexture.NO_OVERLAY,
+                    entity.getId() + context.ordinal());
+            return;
+        }
+        minecraft.getItemRenderer().render(stack, context, leftHand, poseStack, buffer, light,
+                OverlayTexture.NO_OVERLAY, model);
     }
 
     private static void onRegisterColors(RegisterColorHandlersEvent.Item event) {

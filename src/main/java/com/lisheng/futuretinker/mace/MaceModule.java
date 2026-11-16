@@ -15,8 +15,8 @@ import slimeknights.tconstruct.library.materials.MaterialRegistry;
  * 狼牙棒（模块三）。
  *
  * <p>两个部件：棒头（新部件，读硬度/韧性两条材料统计）+ 坚韧手柄（读重量）。</p>
- * <p>核心机制：钩扯流血（读**目标**速度，和长矛读自己速度相反）、棒头形态决定的横扫角度、
- * 手柄重量决定的击退与持有时移速。</p>
+ * <p>核心机制：命中就挂上流血，流血期间目标移动才会被撕裂掉血（和长矛读自己速度相反）、
+ * 棒头形态决定的横扫角度、手柄重量决定的击退与持有时移速。</p>
  */
 public final class MaceModule implements FtModule {
     public static final String ID = "mace";
@@ -33,7 +33,7 @@ public final class MaceModule implements FtModule {
         net.minecraftforge.fml.DistExecutor.unsafeRunWhenOn(
                 net.minecraftforge.api.distmarker.Dist.CLIENT,
                 () -> () -> com.lisheng.futuretinker.mace.MaceClient.register(modBus));
-        FutureTinker.LOGGER.info("Future Tinker: 狼牙棒已接入（钩扯流血 + 形态横扫 + 手柄惯性）");
+        FutureTinker.LOGGER.info("Future Tinker: 狼牙棒已接入（命中流血 + 移动触发伤害 + 形态横扫 + 手柄惯性）");
     }
 
     @Override
@@ -50,11 +50,15 @@ public final class MaceModule implements FtModule {
         if (Registries.ITEM.equals(event.getRegistryKey())) {
             CreativeTab.add(MaceContent::mace);
             CreativeTab.add(MaceContent::maceHead);
+            MaceContent.casts().forEach(cast -> CreativeTab.add(() -> cast));
         }
     }
 
     @Override
     public List<ResourceLocation> contentItems() {
-        return List.of(FutureTinker.id(MaceContent.ID), FutureTinker.id(MaceContent.HEAD_ID));
+        return List.of(FutureTinker.id(MaceContent.ID), FutureTinker.id(MaceContent.HEAD_ID),
+                FutureTinker.id(MaceContent.HEAD_ID + "_cast"),
+                FutureTinker.id(MaceContent.HEAD_ID + "_sand_cast"),
+                FutureTinker.id(MaceContent.HEAD_ID + "_red_sand_cast"));
     }
 }

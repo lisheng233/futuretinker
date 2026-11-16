@@ -1,5 +1,5 @@
 {
   "values": [
-    "futuretinker:wolf_armor"
+    { "id": "futuretinker:wolf_armor", "required": false }
   ]
 }

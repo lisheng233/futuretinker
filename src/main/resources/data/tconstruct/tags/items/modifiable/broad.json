@@ -1,5 +1,5 @@
 {
   "values": [
-    "futuretinker:mace"
+    { "id": "futuretinker:mace", "required": false }
   ]
 }

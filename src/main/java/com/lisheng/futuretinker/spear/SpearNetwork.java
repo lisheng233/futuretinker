@@ -3,9 +3,13 @@ package com.lisheng.futuretinker.spear;
 import com.lisheng.futuretinker.FutureTinker;
 import java.util.function.Supplier;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 /**
@@ -22,7 +26,8 @@ import net.minecraftforge.network.simple.SimpleChannel;
  * </ul>
  */
 public final class SpearNetwork {
-    private static final String PROTOCOL = "1";
+    // 包集合变了就改这个版本：新增 ChargeStateMessage 后旧客户端必须被拒绝。
+    private static final String PROTOCOL = "2";
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.ChannelBuilder
             .named(FutureTinker.id("main"))
@@ -46,6 +51,11 @@ public final class SpearNetwork {
                 .decoder(ChargeMessage::decode)
                 .consumerMainThread((message, context) -> message.handle(context))
                 .add();
+        CHANNEL.messageBuilder(ChargeStateMessage.class, nextId++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(ChargeStateMessage::encode)
+                .decoder(ChargeStateMessage::decode)
+                .consumerMainThread((message, context) -> message.handle(context))
+                .add();
     }
 
     public static void sendSwing() {
@@ -54,6 +64,11 @@ public final class SpearNetwork {
 
     public static void sendCharge(boolean start) {
         CHANNEL.sendToServer(new ChargeMessage(start));
+    }
+
+    /** 服务端：把冲锋状态广播给所有客户端（第三人称动作要用）。 */
+    public static void sendChargeState(Player player, boolean start) {
+        CHANNEL.send(PacketDistributor.ALL.noArg(), new ChargeStateMessage(player.getId(), start));
     }
 
     public record SwingMessage() {
@@ -84,6 +99,22 @@ public final class SpearNetwork {
             } else {
                 SpearCharge.stop(context.get().getSender());
             }
+        }
+    }
+
+    public record ChargeStateMessage(int entityId, boolean start) {
+        void encode(FriendlyByteBuf buffer) {
+            buffer.writeVarInt(entityId);
+            buffer.writeBoolean(start);
+        }
+
+        static ChargeStateMessage decode(FriendlyByteBuf buffer) {
+            return new ChargeStateMessage(buffer.readVarInt(), buffer.readBoolean());
+        }
+
+        void handle(Supplier<NetworkEvent.Context> context) {
+            DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
+                    () -> () -> SpearClientState.onChargeState(entityId, start));
         }
     }
 }

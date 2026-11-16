@@ -1,5 +1,6 @@
 package com.lisheng.futuretinker.wolfarmor;
 
+import com.lisheng.futuretinker.config.FutureTinkerConfig;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -47,7 +48,8 @@ public final class WolfArmorCombat {
             return;
         }
 
-        int damage = (int) Math.ceil(event.getAmount());
+        double absorption = FutureTinkerConfig.wolfArmorDamageAbsorption();
+        int damage = (int) Math.ceil(event.getAmount() * absorption);
         if (damage <= 0) {
             return;
         }

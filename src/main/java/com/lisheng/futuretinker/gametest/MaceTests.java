@@ -2,9 +2,12 @@ package com.lisheng.futuretinker.gametest;
 
 import com.google.common.collect.Multimap;
 import com.lisheng.futuretinker.FutureTinker;
+import com.lisheng.futuretinker.config.FutureTinkerConfig;
+import com.lisheng.futuretinker.mace.BleedEffect;
 import com.lisheng.futuretinker.mace.MaceCombat;
 import com.lisheng.futuretinker.mace.MaceContent;
 import java.util.List;
+import java.util.Map;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
@@ -32,7 +35,7 @@ import slimeknights.tconstruct.library.tools.nbt.MaterialNBT;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.library.tools.part.IToolPart;
 
-/** 狼牙棒：部件顺序、形态分类、钩扯流血、重手柄移速。 */
+/** 狼牙棒：部件顺序、形态分类、命中挂流血、移动触发流血伤害、重手柄移速。 */
 @GameTestHolder(FutureTinker.MOD_ID)
 public final class MaceTests {
     private MaceTests() {}
@@ -76,23 +79,55 @@ public final class MaceTests {
                         + MaceCombat.form(ToolStack.from(mace("tconstruct:flint", "tconstruct:wood"))));
         helper.assertTrue(MaceCombat.sweepAngle(MaceCombat.Form.HARD) < MaceCombat.sweepAngle(MaceCombat.Form.LIGHT),
                 "横扫角度应该：高硬度更窄、轻质更宽");
+        // 非内置经典表的材料也要从头材料统计推导，不能全是 1.0
+        ToolStack nahuatl = ToolStack.from(mace("tconstruct:nahuatl", "tconstruct:wood"));
+        helper.assertTrue(MaceCombat.hardness(nahuatl) != 1.0F || MaceCombat.toughness(nahuatl) != 1.0F,
+                "纳瓦特尔（非经典表材料）的硬度/韧性仍然都是 1.0："
+                        + MaceCombat.hardness(nahuatl) + " / " + MaceCombat.toughness(nahuatl));
+        Map<String, float[]> parsed = FutureTinkerConfig.parseMaceOverrides(List.of(
+                "modid:test_material=1.25,3.5",
+                "invalid-entry",
+                "modid:other=2,4"));
+        float[] test = parsed.get("modid:test_material");
+        helper.assertTrue(test != null && Math.abs(test[0] - 1.25F) < 1.0E-6F
+                        && Math.abs(test[1] - 3.5F) < 1.0E-6F && parsed.containsKey("modid:other"),
+                "狼牙棒材料覆盖配置解析不对：" + parsed.keySet());
         helper.succeed();
     }
 
     @PrefixGameTestTemplate(false)
     @GameTest(templateNamespace = FutureTinker.MOD_ID, template = "empty3x3x3", required = true)
-    public static void movingTargetGetsHookBleed(GameTestHelper helper) {
+    public static void hitAlwaysAppliesBleed(GameTestHelper helper) {
         Player player = helper.makeMockPlayer();
         player.setPos(player.getX(), player.getY() + 40.0D, player.getZ());
         player.setItemInHand(InteractionHand.MAIN_HAND, mace("tconstruct:iron", "tconstruct:wood"));
 
         Zombie zombie = helper.spawn(EntityType.ZOMBIE, new net.minecraft.core.BlockPos(1, 1, 1));
         zombie.moveTo(player.getX() + 3.0D, player.getY(), player.getZ(), 0.0F, 0.0F);
-        zombie.setDeltaMovement(new Vec3(0.5D, 0.0D, 0.0D));
+        zombie.setDeltaMovement(Vec3.ZERO);
 
         MaceCombat.onAttack(new AttackEntityEvent(player, zombie));
         helper.assertTrue(zombie.hasEffect(MaceContent.bleed()),
-                "目标在移动却没有挂上钩扯流血（读的应该是目标速度）");
+                "命中没有挂上流血：现在应该是命中就挂，不再看目标当时的速度");
+        helper.succeed();
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(templateNamespace = FutureTinker.MOD_ID, template = "empty3x3x3", required = true)
+    public static void bleedOnlyHurtsMovingTargets(GameTestHelper helper) {
+        Zombie zombie = helper.spawn(EntityType.ZOMBIE, new net.minecraft.core.BlockPos(1, 1, 1));
+        BleedEffect bleed = (BleedEffect) MaceContent.bleed();
+
+        zombie.setDeltaMovement(Vec3.ZERO);
+        float before = zombie.getHealth();
+        bleed.applyEffectTick(zombie, 0);
+        helper.assertTrue(zombie.getHealth() == before,
+                "站着不动也触发了流血伤害：buff 的伤害应该由移动触发");
+
+        zombie.setDeltaMovement(new Vec3(0.5D, 0.0D, 0.0D));
+        bleed.applyEffectTick(zombie, 0);
+        helper.assertTrue(zombie.getHealth() < before,
+                "目标在移动却没有触发流血伤害");
         helper.succeed();
     }
 

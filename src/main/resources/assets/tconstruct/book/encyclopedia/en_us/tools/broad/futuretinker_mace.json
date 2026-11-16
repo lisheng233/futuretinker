@@ -5,13 +5,14 @@
       "text": "The Mace is a heavy two-part weapon: a spiked head and a handle."
     },
     {
-      "text": "Hitting a moving target opens a bleed (it reads the TARGET's speed, the opposite of the spear). A full cooldown swing sweeps around you; how wide depends on the head material.",
+      "text": "Every hit opens a bleeding wound; while it lasts, a moving target keeps tearing it open for damage. A full cooldown swing sweeps around you; how wide depends on the head material.",
       "paragraph": true
     }
   ],
   "properties": [
     "2 parts: head / handle",
-    "Bleed on moving targets",
+    "Bleed on every hit",
+    "Moving targets take bleed damage",
     "Form-driven sweep",
     "Heavy handles slow you down"
   ]

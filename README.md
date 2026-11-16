@@ -1,5 +1,7 @@
 # Future Tinker
 
+[中文](README.md) | [English](README.en.md)
+
 匠魂（Tinkers' Construct）附属模组：把高版本原版 Minecraft 新增的装备与机制，用匠魂的
 材料、部件与强化系统重新实现。设计与里程碑见 [PLAN.md](PLAN.md)。
 
@@ -30,7 +32,7 @@ futuretinker/
 │   └── empty3x3x3.snbt       # GameTest 模板（3×3×3 空结构，DataVersion 3465）
 ├── src/main/java/com/lisheng/futuretinker/
 │   ├── FutureTinker.java     # @Mod 主类：注册配置 → 提前读开关 → 接模块表
-│   ├── config/FutureTinkerConfig.java   # 模块开关（ForgeConfigSpec + 注册表填充前的提前读取）
+│   ├── config/FutureTinkerConfig.java   # 模块开关 + 工具/狼铠基值 + 棒头材料覆盖（ForgeConfigSpec）
 │   ├── module/FtModule.java             # 模块生命周期契约
 │   ├── module/ModuleRegistry.java       # 模块表 + 唯一的开关闸门（RegisterEvent）
 │   ├── wolfarmor/            # 模块一：狼铠
@@ -101,10 +103,18 @@ FMLCommonSetupEvent                         → 配置已加载
 验证方法（两次运行对照）：
 
 1. 默认配置跑 `python tools/verify_gametest.py`：日志里
-   `Future Tinker 模块开关（注册表填充前，从 futuretinker-common.toml 读到 2 项）: {wolfarmor=true, spear=true}`
-   + `模块闸门（注册阶段）: 启用=[wolfarmor, spear] 关闭=[]`，测试通过；
-2. 把 `modules.spear.enabled` 改成 `false` 再跑：同一行变成 `{wolfarmor=true, spear=false}`、
-   `启用=[wolfarmor] 关闭=[spear]`，测试仍然通过——因为「spear 的标签页不存在」正是它要求的结果。
+   `Future Tinker 模块开关（注册表填充前，从 futuretinker-common.toml 读到 3 项）: {wolfarmor=true, spear=true, mace=true}`
+   + `模块闸门（注册阶段）: 启用=[wolfarmor, spear, mace] 关闭=[]`，测试通过；
+2. 把 `modules.spear.enabled` 改成 `false` 再跑：同一行变成 `{wolfarmor=true, spear=false, mace=true}`、
+   `启用=[wolfarmor, mace] 关闭=[spear]`，测试仍然通过——因为「spear 的标签页不存在」正是它要求的结果。
+
+## 数值配置
+
+同一个 `futuretinker-common.toml` 还提供狼铠/长矛/狼牙棒的公共基值（护甲倍率、吸收率、
+基础攻击/攻速、触及、冲锋倍率、疲劳窗口、流血、手柄重量等），以及
+`[mace.material_stats].overrides` 材料覆盖表——整合包作者可以直接给任意材料指定
+棒头的硬度/韧性两个系数。完整键名、默认值和优先级见
+[`docs/configuration.md`](docs/configuration.md)。
 
 ## 狼铠（模块一）的形状
 
@@ -125,6 +135,10 @@ FMLCommonSetupEvent                         → 配置已加载
 | 死亡掉落 | `WolfArmorDrops`：恒定 1 份 | 实测默认掉落为 0（狼不是玩家/盔甲架，装备直接消失） |
 | 图标颜色 | `WolfArmorClient`：`RegisterColorHandlersEvent.Item`（**模组总线**） | 取 `MaterialRenderInfo#vertexColor()`，与匠魂部件同一套色 |
 | 世界内渲染 | `WolfArmorLayer` + `WolfArmorModel`：狼骨骼**逐箱放大**一圈 + 实体图集 | 背/肚子/腿内外侧都包住；腿/尾巴/坐下/幼狼缩放由同一组动画参数复现 |
+
+**百科**：狼铠在 `tconstruct:modifiable/book_armor` 标签里，百科的护甲章节会按该标签
+自动生成页面；页面在 `book/encyclopedia/<lang>/armor/futuretinker_wolf_armor.json`。
+（只放进普通 `modifiable/armor` 标签是不够的——那一章用的是 `book_armor`。）
 
 **渲染为什么要「再画一遍狼」**：1.20.1 原版没有狼铠模型可抄，自建模型的骨骼要和
 `WolfModel` 逐帧同步（腿、尾巴、坐下、幼狼缩放），错一帧就是穿模。做法是把狼的骨骼抄一份、
@@ -158,22 +172,50 @@ FMLCommonSetupEvent                         → 配置已加载
 **图标**（全部 `mc-art` 渲染，plan 由 `art/spear_masks.py` 生成，形状是「圆锥的二维投影」）：
 
 - 矛头**物品**图标：实心圆锥（做出来的东西是实心的）；
-- 部件台的 pattern 按钮、以及三种铸模：**中间透明**——铸模是「整块料挖出矛头形状的洞」，
-  pattern 按钮是 1px 轮廓环（这两处按 GUI/铸模的规矩来）；
-- 矛本体：**复用原版 1.21.11 的矛图标**（`art/refs_vanilla_spear.png`，你给的那张）——
-  `art/reuse_vanilla_icon.py` 抠黑底、沿矛轴切成三段（尾包口 / 木杆 / 圆锥头）、各自去饱和，
-  作为三层贴图；游戏里三层 tintindex 0/1/2 分别按「矛头 / 手柄 / 绑定结」三个材料上色。
-  所以**既是原版的形状，又能按材料变色**（父模型 `item/handheld`）。
+- 部件台的 pattern 按钮、以及三种铸模：**中间透明**——铸模是「整块料挖出零件形状的洞」，
+  pattern 按钮是 1px 轮廓环（这两处按 GUI/铸模的规矩来）。铸模腔现在直接从**部件图标**
+  的 alpha 轮廓取得：矛头读 `item/spear_head.png`，棒头用 `mace_wolf_tooth.py` 的同一轮廓；
+  缩放到接近满画布并膨胀 1px，保证腔体和零件同形，由 `art/cast_art.py` 生成金/沙子/红沙三套；
+- 矛本体：**复用原版 1.21.11 的 16×16 矛图标**（`art/refs_vanilla_spear.png`，从 1.21.11
+  client.jar 提取）——`art/reuse_vanilla_icon.py` 抠底、沿矛轴切成三段（尾包口 / 木杆 / 矛头）、
+  各自去饱和，作为三层贴图；游戏里三层 tintindex 0/1/2 分别按「矛头 / 手柄 / 绑定结」三个材料上色。
+  所以**既是原版的形状，又能按材料变色**（GUI 父模型 `item/handheld`）。
+- 手持时另用原版 1.21.11 的 **32×32 `_in_hand` 贴图**（`art/refs_vanilla_spear_in_hand.png`）：
+  `art/reuse_vanilla_in_hand.py` 同样沿矛轴切三层灰度，`spear_in_hand.json` 直接套原版的
+  firstperson/thirdperson display 变换。**不能靠 ItemProperties/overrides 在「手持」时切模型**：
+  GUI 的部分渲染路径也会传玩家实体，predicate 在物品栏里同样为真，库存会显示成又长又细的
+  手持图；现在由第一/第三人称的 mixin 显式渲染 32×32 手持模型，GUI/掉落物始终用 16×16 图标。
+  **in-hand 贴图保持原版方向**：原版手持图的矛头在左上；在 `spear_in_hand` 的
+  firstperson display 变换下，左上端正好落在准星附近、右下端伸向手/屏幕外。之前把贴图
+  转 180° 是弄反了方向——用「头/杆/尾三色分层」在 dev 客户端实机截图确认后才改回来。
 
 **姿势与动画**（1.20.1 没有物品动画接口，走 mixin）：
 
 - 冲锋**不进原版的「使用物品」状态**：`isUsingItem()` 会让 `LocalPlayer.aiStep` 把移动输入
   乘 0.2 并禁止疾跑——原版长矛冲锋要能边跑边压，所以右键只发一个「开始冲锋」包，
   松手发「结束冲锋」，计时在服务端走。顺带也就不会套用三叉戟那套压低动画。
-- `ItemInHandRendererMixin`（`futuretinker.mixins.json`，`mods.toml` 的 `[[mixins]]`）：
-  注入 `ItemInHandRenderer#renderArmWithItem` 的 HEAD，只接管【拿着矛且正在压低或挥击】的情况，
-  其余原样交回原版。压低 = 随时间向前向下压 + 绕 X 旋转，戳刺 = 挥击进度驱动的向前一顶。
-  注入目标用 SRG 名（`m_109371_`），mixin 配置 `required=false`，注入失败不会拖垮客户端。
+- **动画计时与原版一致**：`SpearAnimation` 沿用 `SpearAnimations` 的
+  firstPersonAttack / thirdPersonUseItem / thirdPersonAttackItem / thirdPersonHandUse，
+  计时来自 `SpearCharge.Timings`（激活 → 挑落窗口 → 击退窗口 → 伤害窗口）。
+  **第一人称压低姿势**逐行照抄原版的 `firstPersonUse`：绕 **X 轴** -65°（easeInOutBack）
+  把矛压平，再绕 **-Y 轴** ±90° 把矛头收到准星右前方。第二段必须是 `Axis.YN`——之前误写成
+  Z 轴滚转，矛在右键全程保持竖直；改回 X+(-Y) 后与 1.21.11 一致。第一段抬起时再按
+  `raise` 往玩家手侧（+0.08）和前方（-0.06）各偏移一点；疲劳阶段的摇晃/放下仍由
+  `Params` 驱动。
+- **戳刺**：`firstPersonAttack` 逐行照抄 1.21.11（不再额外滚 90°）；`LivingEntitySwingMixin`
+  把挥击时长从固定 6 tick 改成 `20 / 攻速`（原版矛的 `swing_animation` 就是 0.95 秒 ≈ 19 tick），
+  否则一帧就挥完。
+- **第一人称**：`ItemInHandRendererMixin` 注入 `renderArmWithItem` 的 HEAD，只接管
+  【主手拿矛且正在压低/挥击】的帧；基准平移用原版的 `(side*0.56, -0.52, -0.72)`
+  （1.20.1 的 `applyItemArmTransform` 会多减 `equipProgress*0.6`，照抄会把矛压低 0.6 格）。
+  另外取消 `itemUsed`：按住右键时原版每 4 tick 重调 `use`，会把持物高度归零再弹回，
+  表现为周期性上下抖。
+- **第三人称**：`ItemInHandLayerMixin` 在 `renderItem` 前套物品动作；
+  `HumanoidModelMixin`（借 `@Accessor` 拿 rightArm/leftArm）把主手抬成原版的持矛姿势。
+  其他玩家的冲锋状态由服务端 `ChargeStateMessage` 广播（本地玩家仍以输入计时为准）。
+- **dev 与生产一致**：`build.gradle` 用 MixinGradle + annotation processor 生成
+  `futuretinker.refmap.json`；mixin 源码写 official 名，生产 jar 靠 refmap 映射到 SRG。
+  之前源码写 SRG、没有 refmap，生产能跑但 dev 客户端会静默跳过注入。
 
 **百科条目**：匠魂百科的工具页是**按标签自动生成**的（`tconstruct:load_tools` + 语言文件），
 不是手写页面清单。所以矛进了 `tconstruct:modifiable/small`，文案在
@@ -196,30 +238,62 @@ FMLCommonSetupEvent                         → 配置已加载
 | 不挖方块（对块也是戳刺） | `SpearAttack.onLeftClickBlock` 把 `useBlock/useItem` 设 `DENY` | `spearDoesNotMineBlocks` |
 | 一次戳多个目标 | `SpearAttack.sweep`：眼睛射线扫所有候选，主目标交给原版、其余补一发 | `sweepHitsEveryTargetInFront` |
 | 0.125 碰撞箱放大 | `sweep` 用 `box.inflate(0.125)` 做射线求交；左键空气时客户端发 swing 包让服务端也扫 | `hitboxMarginMakesNearMissesHit` |
-| 按住右键压低矛身 | `SpearItem.use` + `UseAnim.SPEAR`（+压低音效） | 客户端观感，未验证 |
-| 冲锋伤害 = 1 + 倍率 × 相对速度 | `SpearCharge.damage` / `tick` | `damageAndSpeedGatesMatchVanilla` |
-| 相对速度 ≥ 4.6 才结算 | `SpearCharge.canDamage` | 同上 |
-| 自身速度 ≥ 5.1 才击退 | `SpearCharge.canKnockback` | 同上 |
-| 一次冲锋命中多个目标 | `tick` 扫描前方锥体 | `chargeHitsEveryTargetInFront` |
-| 高速冲锋挑落骑乘 | `tick`：engaged 阶段 + 达到挑落阈值才 `stopRiding` | `chargeHitsFastTargetsAndDismounts` |
-| 三阶段疲劳（engaged → tired → disengaged） | `SpearCharge.stageAt` | `stagesWalkInOrder` |
-| 材料决定数值 | 矛头：倍率/挑落阈值/激活延迟；手柄：疲劳窗口长度 | `handleMaterialChangesFatigueWindow` |
+| 按住右键压低矛身 | `SpearAnimation.firstPersonUse` 逐行照抄（X 轴压平 + `Axis.YN` 收矛） | 离线矩阵预览 + dev 客户端 |
+| 冲锋伤害 = 攻击力 + ⌊相对速度 × 倍率⌋ | `SpearCharge.chargeDamage` / `tick` | `damageAndSpeedGatesMatchVanilla` |
+| 相对速度 ≥ 4.6 才结算 | `tick`：`DAMAGE_SPEED` | 同上 |
+| 沿视线速度 ≥ 5.1 可无伤害击退；伤害命中本身也击退 | `tick`：`canKnockback` / `damaged` | 同上 |
+| 一次冲锋命中多个目标 | `tick`：眼睛 + 视线×2.0 到 4.5（创造 6.5）+ 一 tick 位移的射线；精确命中箱 → 0.125 放大 + 到中心视线 | `chargeHitsEveryTargetInFront` |
+| 高速冲锋挑落骑乘 | `tick`：挑落窗口内 + 沿视线速度达到挑落阈值；与伤害条件独立 | `chargeHitsFastTargetsAndDismounts` |
+| 接触冷却 10 tick | `tick`：射线命中后、速度条件前登记，用 `gameTime` | 代码核对（无直接测试） |
+| 三个条件窗口（挑落 → 击退 → 伤害） | `SpearCharge.Timings` | `windowsWalkInOrder` |
+| 材料决定数值 | 矛头耐久分档决定四个窗口；手柄耐久修正给窗口 ±10 tick | `handleMaterialChangesFatigueWindow` |
+
+与 1.21.11 的逐项对照（含原版常数出处）见
+[`docs/spear_charge_audit.md`](docs/spear_charge_audit.md)。
 
 **数值怎么由材料算出来**（原版是按材质等级写的，这里换成匠魂材料）：
 
 - 矛头「等级」由矛头耐久分档（<100 / <200 / <600 / <1600 / 其余 = 0/1/2/3/4，正好对应原版木/石/铁/钻石/下界合金）；
-- 倍率 = `0.65 + 0.1×等级 + 0.03×矛头攻击力`，夹在 0.7~1.2（原版就是 0.7~1.2）；
-- 挑落速度 = `14 − 等级`，夹在 9~14（原版正好是 14 到 9）；
-- 疲劳窗口倍率 = `1 + 手柄材料的 durability 修正`（匠魂手柄是 -0.35~+0.35 的比例），夹在 0.75~1.5；
-  女王史莱姆手柄窗口最长，琥珀金最短。
+- 倍率 = `0.65 + 0.1×等级 + 0.03×矛头攻击力`，夹在 0.7~1.2（原版就是 0.7~1.2），再乘材料冲刺系数；
+- 挑落速度按等级取原版的 `{14,10,8,7.5,7}` 格/秒；
+- 四个数值（激活延迟，以及激活后挑落/击退/伤害窗口，单位 tick）按等级取
+  `{15,14,12,10,8} / {100,90,50,60,50} / {200,180,135,130,110} / {300,275,225,200,175}`；
+  击退窗口来自原版物品工厂的 10.0 / 9.0 / 6.75 / 6.5 / 5.5 秒；
+- 手柄材料的 durability 修正（匠魂手柄是 -0.35~+0.35 的比例）给三个窗口各加 ±10 tick：
+  女王史莱姆更长，琥珀金更短。
 
 **音效**：压低时 `PLAYER_ATTACK_SWEEP`（0.7 音高），冲锋命中 `TRIDENT_HIT`。
 原版 `item.spear.*` 这套音效在 1.20.1 不存在，只能用最接近的替代；也没有音频素材可以自制。
 
-**没做的**（别当成做了）：**三阶段的持矛姿势差异**。1.20.1 的 item 系统只有一档
-`UseAnim.SPEAR`（压低）姿态，没有按阶段换姿态的动画/模型接口；硬做只能靠换模型文件假装，
-在客户端上不可验证，所以没做——阶段的差别目前体现在**机制**（tired 不再挑落、disengaged 不再击退）
-和命中音效上。
+**没做的**：命中反馈的位移（原版 `hitFeedback` 命中后有一小段回弹）没有接；音效仍是
+1.20.1 能找到的替代音。疲劳摇晃、第三人称手臂、戳刺动画都已接上。
+
+## 狼牙棒（模块三）
+
+两个部件：**狼牙棒头（自制）** + **坚韧手柄**。棒头读两条自定义材料统计
+`futuretinker:hardness` / `futuretinker:toughness`（材料数据 > 内置经典表 > 从头材料的
+耐久/攻击/挖掘等级推导，不再让大部分材料固定 1.0），决定形态：HARD（穿甲/窄横扫）、
+TOUGH（减速/中横扫）、LIGHT（快打/宽横扫）、NEUTRAL。
+
+- **造型**：按真实狼牙棒重画——**粗椭圆棒身 + 成排狼牙 + 底部斜向箍环 + 尖头**，不是原版重锤；
+  箍环垂直于棒轴，手柄沿同一轴线接入（不是横着贴在头底的木棍）。
+  参考照片的轮廓由 `art/mace_wolf_tooth.py` 描成 **32×32** 的工具两层灰度
+  （棒头/手柄分别按两个材料上色）；部件图标、部件台 pattern 和铸模腔是同一轮廓的
+  **16×16** 版本，铸模腔由 `cast_mask()` 膨胀 1px 生成（`art/cast_art.py`）。
+  手持仍用 `handheld_mace` 的 display 变换。
+- **流血**：命中就挂 `futuretinker:bleed`（状态栏可见）；buff 期间目标**移动**时每 10 tick
+  被撕裂掉血（魔法伤害，无视护甲）；站着不动不掉血。HARD 形态 amplifier 1，其余 0；
+  横扫命中的每个目标也会挂。
+- **铸模**：棒头的金/沙子/红沙三种铸模和矛头一样走匠魂的 `PartCastItem` +
+  `tconstruct:casting_table` / `molding_table` / `item_part_builder`，不是自定义铸模类型；
+  三张贴图和物品模型由 `art/cast_art.py` 生成（满画布的透明型腔，和匠魂 `hammer_head` 一致）。
+- **自定义统计**：棒头的 `futuretinker:hardness` / `toughness` 会显示在部件 tooltip；
+  狼牙棒本体 tooltip 也显示形态和这两条统计（材料数据优先，经典材料走内置表，
+  其余材料按头材料的耐久/攻击/等级推导）。
+- **横扫**：冷却满时按形态扫描前方锥体；**手柄重量**（材料 durability 修正）给移速惩罚。
+- **百科 page**：`pattern.futuretinker.mace_head` 等翻译键补齐；矛/狼牙棒工具定义加了
+  `fixed_material_name`，百科页显示成「任意 矛 / 任意 狼牙棒」。
+- 判定：`MaceTests` 5 条（部件顺序、形态、命中必挂、移动才掉血、重手柄移速）。
 
 ## 已验证 / 未验证
 
@@ -228,7 +302,7 @@ FMLCommonSetupEvent                         → 配置已加载
 - `gradlew build` 退出码 0；产物 `build/libs/futuretinker-0.1.0.jar` 里 `mods.toml` 的占位符
   已展开、中文描述是合法 UTF-8、`pack.mcmeta` 的 `pack_format=15`。
 - `libs/` 里的匠魂/Mantle jar 经 `flatDir` + `fg.deobf` 正确解析，deobf 产物存在。
-- `python tools/verify_gametest.py` 通过：**32 条必需测试全过**，日志有批次计数，退出码 0。
+- `python tools/verify_gametest.py` 通过：**38 条必需测试全过**，日志有批次计数，退出码 0。
 - `python tools/verify_gametest.py --fault` 下判定失败（`1 required tests failed :(`，
   gradle 退出码 1，脚本判「注入的故障被抓住」），证明这套检查会说不。
 - 模组加载期崩溃/编译失败时脚本判定「没跑到测试」（退出码 2），不会误读成通过。
@@ -249,10 +323,11 @@ FMLCommonSetupEvent                         → 配置已加载
 - **长矛的戳刺规矩**：`SpearAttackTests` 六条——触及加在 `forge:entity_reach`、
   不满蓄力/2 格内会被取消、`CriticalHitEvent` 被设成 `DENY`、拿矛左键方块不挖、
   一次扫到两个目标、擦边 0.06 格靠 0.125 碰撞箱放大打中（并先断言「不放大就打不中」）。
-- **长矛的冲锋**：`SpearChargeTests` 六条——伤害公式与两个速度门槛、三阶段顺序、
-  手柄材料改变疲劳窗口、12.5 格/秒冲锋造成伤害并挑落骑手、前方两个目标同时被命中、
-  原地不动打不出伤害。冲锋测试把战场抬到 40 格高空，避免隔壁结构的实体进入扫描范围
-  （GameTest 的结构是紧挨着排的，这条踩过）。
+- **长矛的冲锋**：`SpearChargeTests` 六条——伤害公式与速度/射程常数、四个窗口的顺序、
+  手柄材料改变窗口长度、12.5 格/秒冲锋造成伤害并挑落骑手、前方两个目标同时被命中、
+  原地不动打不出伤害。速度按**位置差**模拟（玩家；怪物的 `deltaMovement` 可直接用），
+  测试把战场抬到 40 格高空避开隔壁结构；抬上去后是石头，而原版方块裁剪从眼睛开始，
+  所以 `carveTestRoom` 先挖一个沿 +X 的空气房再开打（不要在生产代码里忽略贴脸方块）。
 - **三种铸模真的注册了**：`SpearDataTests.castsAreRegistered`（三个 `PartCastItem`），
   外加 9 个配方 id 的加载断言（装配、部件台、金铸模、沙子/红沙的压模与两种模板）。
 - **百科里有矛**：`SpearDataTests.spearIsListedInTheEncyclopedia` 断言矛在
@@ -260,19 +335,43 @@ FMLCommonSetupEvent                         → 配置已加载
 - **只有一个标签页，且跟着开关走**：`ModuleGateTests.gateIsWiredToConfig` 现在断言
   「共用的 `futuretinker:main` 有模块启用时存在、全关时不存在」，并逐个模块断言它的物品
   在关掉时一个都不在注册表里。
+- **长矛动画**：第一人称压低姿势逐行复刻 1.21.11 `firstPersonUse` 的 X+(-Y) 旋转，并用离线
+  矩阵预览核对全程——抬起后矛头落在准星右前方，稳定/摇晃/放下都不再保持竖直；左键戳刺用
+  原版 stab 曲线并在屏幕内滚平为水平前刺；第三人称能看到主手前伸和矛身姿态变化。
+  dev 客户端此前确认过第一人称矛头可见、不再上下抖，这一版姿势待游戏内最终确认。
+- **狼牙棒造型和流血**：GUI/手持模型是自绘的「粗椭圆狼牙棒头 + 成排狼牙 + 箍环」，不是原版重锤；
+  棒头/手柄两层分别按材料上色。`MaceTests` 5 条——命中必挂流血、站着不动不掉血、
+  移动才掉血、形态分类、重手柄移速。
+- **棒头铸模 / 自定义统计 / 百科**：金/沙/红沙三种铸模走匠魂 `PartCastItem` +
+  `casting_table`/`molding_table`/`item_part_builder`；`MaceHeadItem`/`MaceItem` tooltip
+  显示 `futuretinker:hardness/toughness`；`pattern.futuretinker.mace_head` 等翻译键补齐；
+  `tconstruct:modifiable/book_armor` 标签让狼铠百科护甲页生成，矛/狼牙棒定义加
+  `fixed_material_name`（「任意 矛 / 任意 狼牙棒」）。
+- **Mixin 在 dev 也能注入**：`build.gradle` 用 MixinGradle + annotation processor 生成
+  `futuretinker.refmap.json`，产物 jar 内含它。之前源码写 SRG 名、又没有 refmap，
+  生产 jar 能跑但 dev 客户端会静默跳过注入——这正是「改了动画但游戏里没变」的根因。
 
 **未验证（别当成已验证）**
 
-- **没有启动过客户端**：狼铠的颜色/世界内渲染、长矛的持矛姿势与模型、矛头图标的上色与
-  部件台里那个 pattern 按钮，都只核过代码路径（事件总线、图集矩形、`mc-art ingame` 渲染），
-  **没有在真客户端里看过一眼**。
+- **狼铠的客户端观感仍未验证**：狼铠的颜色/世界内渲染、矛头图标的上色与部件台里那个
+  pattern 按钮，只核过代码路径（事件总线、图集矩形、`mc-art ingame` 渲染）；这次启动客户端
+  只确认了长矛的第一/第三人称动画和手部模型，没有专门去看狼。
 - 没有在真实整合包环境（几十个模组、Tinkers' Tools / Dreamtinker 共存）里跑过。
 - 匠魂砧/部件台的界面观感（格子位置、pattern 按钮是否出现在列表里）没看过。
-- 长矛与矛头的模型/贴图都是「借匠魂 javelin 的贴图 + 自制灰度图标」；材质变体与染色只有实机能证明。
+- 长矛的 GUI 图标仍是复用原版图标的灰度三层，手部用原版 32×32 in-hand 灰层；Chorus 材料的
+  紫色在实机看过，其他材料的观感未逐一检查。
 - 没有验证「关掉模块后存档/配方不残留引用」。
 
 ## 后续（M4 起）
 
-长矛的机制已按原版接完（M4/M5 的核心），剩下的只有「三阶段的持矛姿势」这一项
-（1.20.1 没有对应动画接口）和实机观感——见 PLAN.md 的里程碑表。
+长矛的机制与三阶段姿势已接完（M4/M5）；剩下的是命中回弹反馈、原版音效（1.20.1 无素材）、
+真实整合包共存和狼铠的客户端观感——见 PLAN.md 的里程碑表。
 新增模块时必须同时加配置开关，否则 `ModuleRegistry.validateIds()` 会在启动时直接失败。
+
+## 许可证
+
+本项目以 **GNU General Public License v3.0（GPL-3.0-only）** 发布，完整文本见
+[LICENSE](LICENSE)。
+
+Minecraft、Tinkers' Construct、Mantle 及其贴图/参考素材仍归各自权利人所有；`libs/` 里的
+匠魂/Mantle jar 仅用于锁定编译版本，不改变其原有许可。

@@ -2,12 +2,14 @@ package com.lisheng.futuretinker.spear;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
+import com.lisheng.futuretinker.config.FutureTinkerConfig;
 import java.util.UUID;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -36,8 +38,8 @@ public class SpearItem extends ModifiableItem {
     public static final double REACH_BONUS = 1.5D;
 
     private static final UUID REACH_UUID = UUID.fromString("8b0e3d1a-6d3f-4a52-9d0c-2f7e5a1c4b90");
-    private static final AttributeModifier REACH_MODIFIER = new AttributeModifier(
-            REACH_UUID, "futuretinker:spear_reach", REACH_BONUS, AttributeModifier.Operation.ADDITION);
+    private static final UUID DAMAGE_UUID = UUID.fromString("0f6d2b91-3a8e-4c57-9b14-7d2e5c8a6f32");
+    private static final UUID SPEED_UUID = UUID.fromString("4a9c7e21-8b3d-4f60-a2c5-1e6b9d0f3a84");
 
     public SpearItem(Properties properties, ToolDefinition definition) {
         super(properties, definition);
@@ -51,7 +53,23 @@ public class SpearItem extends ModifiableItem {
         }
         ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
         builder.putAll(base);
-        builder.put(ForgeMod.ENTITY_REACH.get(), REACH_MODIFIER);
+        builder.put(ForgeMod.ENTITY_REACH.get(), new AttributeModifier(REACH_UUID,
+                "futuretinker:spear_reach", FutureTinkerConfig.spearReachBonus(),
+                AttributeModifier.Operation.ADDITION));
+        double damageDelta = FutureTinkerConfig.spearBaseAttackDamage()
+                - FutureTinkerConfig.SPEAR_DEFAULT_ATTACK_DAMAGE;
+        if (Math.abs(damageDelta) > 1.0E-6D) {
+            builder.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(DAMAGE_UUID,
+                    "futuretinker:config_spear_damage", damageDelta,
+                    AttributeModifier.Operation.ADDITION));
+        }
+        double speedDelta = FutureTinkerConfig.spearBaseAttackSpeed()
+                - FutureTinkerConfig.SPEAR_DEFAULT_ATTACK_SPEED;
+        if (Math.abs(speedDelta) > 1.0E-6D) {
+            builder.put(Attributes.ATTACK_SPEED, new AttributeModifier(SPEED_UUID,
+                    "futuretinker:config_spear_speed", speedDelta,
+                    AttributeModifier.Operation.ADDITION));
+        }
         return builder.build();
     }
 

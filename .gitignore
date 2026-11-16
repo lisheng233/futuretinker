@@ -16,3 +16,6 @@ __pycache__/
 .art-work/
 # 参考图从官方 jar 里取，不入仓（版权 + 体积）
 art/refs*/
+
+# ImageGen 概念图（不入仓；最终贴图由 art/ 脚本生成）
+vibe_images/
