@@ -202,8 +202,10 @@ FMLCommonSetupEvent                         → 配置已加载
   Z 轴滚转，矛在右键全程保持竖直；改回 X+(-Y) 后与 1.21.11 一致。第一段抬起时再按
   `raise` 往玩家手侧（+0.08）和前方（-0.06）各偏移一点；疲劳阶段的摇晃/放下仍由
   `Params` 驱动。
-- **戳刺**：`firstPersonAttack` 逐行照抄 1.21.11（不再额外滚 90°）；`LivingEntitySwingMixin`
-  把挥击时长从固定 6 tick 改成 `20 / 攻速`（原版矛的 `swing_animation` 就是 0.95 秒 ≈ 19 tick），
+- **戳刺**：`firstPersonAttack` 保留 1.21.11 的平移 / Y 旋转曲线；1.20.1 的持矛基准会让矛
+  在戳刺时保持竖直，所以在挥击段额外沿视线滚 75°（按 `p2-p3` 渐入渐出）并上抬 0.05，
+  把矛放平、矛头放到准星附近，结束再回到待机。`LivingEntitySwingMixin` 把挥击时长从
+  固定 6 tick 改成 `20 / 攻速`（原版矛的 `swing_animation` 就是 0.95 秒 ≈ 19 tick），
   否则一帧就挥完。
 - **第一人称**：`ItemInHandRendererMixin` 注入 `renderArmWithItem` 的 HEAD，只接管
   【主手拿矛且正在压低/挥击】的帧；基准平移用原版的 `(side*0.56, -0.52, -0.72)`

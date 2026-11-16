@@ -112,12 +112,16 @@ public final class SpearAnimation {
         float p1 = easeInOutSine(progress(swing, 0.0F, 0.05F));
         float p2 = easeOutBack(progress(swing, 0.05F, 0.2F));
         float p3 = easeInOutExpo(progress(swing, 0.4F, 1.0F));
+        float level = Mth.clamp(p2 - p3, 0.0F, 1.0F);
         poseStack.translate(
                 side * 0.1F * (p1 - p2),
-                -0.075F * (p1 - p3),
+                -0.075F * (p1 - p3) + 0.05F * level,
                 0.65F * (p1 - p2));
         poseStack.mulPose(Axis.YP.rotationDegrees(-70.0F * (p1 - p3)));
         poseStack.translate(0.0F, 0.0F, -0.25F * (p3 - p2));
+        // 1.20.1 的持矛基准让矛在戳刺时保持竖直；沿视线滚 75° 把矛放平，
+        // 略微上抬让矛头落在准星附近；挥击结束再回到待机。
+        poseStack.mulPose(Axis.ZP.rotationDegrees(side * 75.0F * level));
     }
 
     /** 第三人称：手持物品的压低/摇晃/放下。调用点在物品渲染之前（已经做完 hand transform）。 */

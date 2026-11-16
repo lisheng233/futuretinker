@@ -119,11 +119,21 @@ public final class FutureTinkerConfig {
                         "armor_bonus/toughness_bonus 是平加值，默认 0。",
                         "damage_absorption 是受击时由狼铠耐久吸收的比例（1.0 = 原版 1:1）。")
                 .push("wolfarmor");
-        WOLF_ARMOR_MULTIPLIER = builder.defineInRange("armor_multiplier", 2.0D, 0.0D, 20.0D);
-        WOLF_TOUGHNESS_MULTIPLIER = builder.defineInRange("toughness_multiplier", 1.0D, 0.0D, 20.0D);
-        WOLF_ARMOR_BONUS = builder.defineInRange("armor_bonus", 0.0D, -100.0D, 100.0D);
-        WOLF_TOUGHNESS_BONUS = builder.defineInRange("toughness_bonus", 0.0D, -100.0D, 100.0D);
-        WOLF_DAMAGE_ABSORPTION = builder.defineInRange("damage_absorption", 1.0D, 0.0D, 1.0D);
+        WOLF_ARMOR_MULTIPLIER = builder
+                .comment("总护甲倍率；默认 2.0 与 wolf_armor_chestplate.json 的 multiply_stats 对齐。")
+                .defineInRange("armor_multiplier", 2.0D, 0.0D, 20.0D);
+        WOLF_TOUGHNESS_MULTIPLIER = builder
+                .comment("总韧性倍率；默认 1.0。")
+                .defineInRange("toughness_multiplier", 1.0D, 0.0D, 20.0D);
+        WOLF_ARMOR_BONUS = builder
+                .comment("护甲平加值（可负）；默认 0。")
+                .defineInRange("armor_bonus", 0.0D, -100.0D, 100.0D);
+        WOLF_TOUGHNESS_BONUS = builder
+                .comment("韧性平加值（可负）；默认 0。")
+                .defineInRange("toughness_bonus", 0.0D, -100.0D, 100.0D);
+        WOLF_DAMAGE_ABSORPTION = builder
+                .comment("受击时由狼铠耐久吸收伤害的比例；1.0 = 原版 1:1，0 = 不吸收。")
+                .defineInRange("damage_absorption", 1.0D, 0.0D, 1.0D);
         builder.pop();
 
         builder.comment(
@@ -133,11 +143,21 @@ public final class FutureTinkerConfig {
                         "charge_damage_scale 是冲锋伤害的额外全局倍率（叠在材料倍率上）。",
                         "handle_fatigue_bonus_ticks 是手柄耐久修正换算出的窗口 tick 常数，默认 10。")
                 .push("spear");
-        SPEAR_BASE_DAMAGE = builder.defineInRange("base_attack_damage", SPEAR_DEFAULT_ATTACK_DAMAGE, 0.0D, 100.0D);
-        SPEAR_BASE_SPEED = builder.defineInRange("base_attack_speed", SPEAR_DEFAULT_ATTACK_SPEED, 0.0D, 100.0D);
-        SPEAR_REACH = builder.defineInRange("reach_bonus", 1.5D, 0.0D, 10.0D);
-        SPEAR_CHARGE_SCALE = builder.defineInRange("charge_damage_scale", 1.0D, 0.0D, 10.0D);
-        SPEAR_FATIGUE_BONUS = builder.defineInRange("handle_fatigue_bonus_ticks", 10.0D, 0.0D, 100.0D);
+        SPEAR_BASE_DAMAGE = builder
+                .comment("基础攻击伤害；默认 1.0 与 spear.json 的 base_stats 对齐。")
+                .defineInRange("base_attack_damage", SPEAR_DEFAULT_ATTACK_DAMAGE, 0.0D, 100.0D);
+        SPEAR_BASE_SPEED = builder
+                .comment("基础攻击速度；默认 1.0。")
+                .defineInRange("base_attack_speed", SPEAR_DEFAULT_ATTACK_SPEED, 0.0D, 100.0D);
+        SPEAR_REACH = builder
+                .comment("额外触及（格）；默认 1.5，原版近战 3.0 + 1.5 = 4.5。")
+                .defineInRange("reach_bonus", 1.5D, 0.0D, 10.0D);
+        SPEAR_CHARGE_SCALE = builder
+                .comment("冲锋伤害全局倍率；叠在材料倍率上，0 = 关闭冲锋额外伤害。")
+                .defineInRange("charge_damage_scale", 1.0D, 0.0D, 10.0D);
+        SPEAR_FATIGUE_BONUS = builder
+                .comment("手柄耐久修正换算出的疲劳窗口 tick 常数；默认 10。")
+                .defineInRange("handle_fatigue_bonus_ticks", 10.0D, 0.0D, 100.0D);
         builder.pop();
 
         builder.comment(
@@ -146,19 +166,33 @@ public final class FutureTinkerConfig {
                         "hard_damage_multiplier 是 HARD 形态额外魔法伤害 = 硬度 × 此值。",
                         "handle_weight_penalty 是重手柄的最大移速惩罚（默认 0.08 = -8%）。")
                 .push("mace");
-        MACE_BASE_DAMAGE = builder.defineInRange("base_attack_damage", MACE_DEFAULT_ATTACK_DAMAGE, 0.0D, 100.0D);
-        MACE_BASE_SPEED = builder.defineInRange("base_attack_speed", MACE_DEFAULT_ATTACK_SPEED, 0.0D, 100.0D);
-        MACE_BLEED_DURATION = builder.defineInRange("bleed_duration", 200, 20, 72000);
-        MACE_BLEED_MOVE_SPEED = builder.defineInRange("bleed_move_speed", 0.05D, 0.0D, 10.0D);
-        MACE_HARD_DAMAGE_MULTIPLIER = builder.defineInRange("hard_damage_multiplier", 1.5D, 0.0D, 10.0D);
-        MACE_HANDLE_PENALTY = builder.defineInRange("handle_weight_penalty", 0.08D, 0.0D, 1.0D);
+        MACE_BASE_DAMAGE = builder
+                .comment("基础攻击伤害；默认 3.0 与 mace.json 的 base_stats 对齐。")
+                .defineInRange("base_attack_damage", MACE_DEFAULT_ATTACK_DAMAGE, 0.0D, 100.0D);
+        MACE_BASE_SPEED = builder
+                .comment("基础攻击速度；默认 0.9。")
+                .defineInRange("base_attack_speed", MACE_DEFAULT_ATTACK_SPEED, 0.0D, 100.0D);
+        MACE_BLEED_DURATION = builder
+                .comment("流血持续时间（tick）；默认 200。")
+                .defineInRange("bleed_duration", 200, 20, 72000);
+        MACE_BLEED_MOVE_SPEED = builder
+                .comment("触发流血所需的目标水平速度（格/秒）；默认 0.05。")
+                .defineInRange("bleed_move_speed", 0.05D, 0.0D, 10.0D);
+        MACE_HARD_DAMAGE_MULTIPLIER = builder
+                .comment("HARD 形态额外魔法伤害 = 硬度 × 此值；默认 1.5。")
+                .defineInRange("hard_damage_multiplier", 1.5D, 0.0D, 10.0D);
+        MACE_HANDLE_PENALTY = builder
+                .comment("重手柄最大移速惩罚；默认 0.08 = -8%。")
+                .defineInRange("handle_weight_penalty", 0.08D, 0.0D, 1.0D);
         builder.comment(
                         "棒头硬度/韧性覆盖表，优先级最高（高于材料数据、内置经典表和推导）。",
                         "格式：\"material_id=hardness,toughness\"，例如",
                         "  \"tconstruct:nahuatl=4.0,2.5\"",
                         "可以给本模组未内置的材料补值；同一 ID 重复出现时最后一个生效。")
                 .push("material_stats");
-        MACE_OVERRIDES = builder.defineList("overrides", List.of(), value -> value instanceof String);
+        MACE_OVERRIDES = builder
+                .comment("棒头硬度/韧性覆盖表；格式 \"material_id=hardness,toughness\"，优先级最高。")
+                .defineList("overrides", List.of(), value -> value instanceof String);
         builder.pop();
         builder.pop();
 
