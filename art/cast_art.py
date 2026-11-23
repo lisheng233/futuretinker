@@ -1,94 +1,72 @@
-"""Draw the gold / sand / red-sand casts for the spear head and wolf-tooth head.
+"""Cut the spear/mace cavities out of TConstruct's three blank casts.
 
-TConstruct's part casts are 16x16: an opaque noisy metal/sand background with the
-part silhouette cut out (fully transparent).  The cavity is derived from the actual
-part icon, scaled up to fill the cast and dilated 1px so thin teeth/spikes stay
-connected: the spear cavity follows `item/spear_head.png`, the mace cavity follows
-`mace_wolf_tooth.py`.  No hand-drawn second silhouette that can drift from the part.
+TConstruct's blank casts (gold / sand / red sand) are 16x16 fully opaque
+textured blocks.  A part cast is exactly that block with the part silhouette
+punched out, so we reuse the real blank textures instead of drawing a new
+palette.  The cavity uses the part icon's alpha at its native pixel size
+(centred, not scaled, not dilated), which keeps it identical to the part.
 
+The blank textures are read straight from the TConstruct jar in libs/.
 Deterministic: rerun and you get the same files.
 """
 
+import io
 import pathlib
-import random
-import zlib
+import zipfile
 
 from PIL import Image
 
-from mace_wolf_tooth import cast_mask
-
 ART = pathlib.Path(__file__).resolve().parent
 RES = ART.parent / "src/main/resources/assets/futuretinker/textures"
+TCON_JAR = sorted((ART.parent / "libs").glob("TConstruct-*.jar"))[-1]
 
-# Exact palettes sampled from TConstruct's cast textures.
-GOLD = ["#EDAD17", "#F4C730", "#FCE24E", "#FDF55F", "#FEFFBD"]
-SAND = ["#D1BA8A", "#D5C496", "#DACFA3", "#E3DBB0", "#E7E4BB", "#EDEBCB"]
-RED_SAND = ["#AC5712", "#B2601F", "#BF6721", "#CB6E24", "#D2752B", "#D97B30"]
-
-GOLD = [tuple(int(h[i:i + 2], 16) for i in (1, 3, 5)) for h in GOLD]
-SAND = [tuple(int(h[i:i + 2], 16) for i in (1, 3, 5)) for h in SAND]
-RED_SAND = [tuple(int(h[i:i + 2], 16) for i in (1, 3, 5)) for h in RED_SAND]
-
-def dilate(mask, size=16):
-    out = [[False] * size for _ in range(size)]
-    for y in range(size):
-        for x in range(size):
-            if not mask[y][x]:
-                continue
-            for dy in (-1, 0, 1):
-                for dx in (-1, 0, 1):
-                    nx, ny = x + dx, y + dy
-                    if 0 <= nx < size and 0 <= ny < size:
-                        out[ny][nx] = True
-    return out
+BLANKS = (
+    ("item/cast", "cast"),
+    ("item/sand_cast", "sand_cast"),
+    ("item/red_sand_cast", "red_sand_cast"),
+)
 
 
-def part_silhouette(part, fill=14, expand=1):
-    """Read a 16x16 part icon and scale its alpha to fill most of the cast."""
+def cavity(part):
+    """Native-size part silhouette, centred on a 16x16 canvas."""
     image = Image.open(RES / "item" / f"{part}.png").convert("RGBA")
-    bbox = image.getbbox()
+    alpha = image.getchannel("A").point(lambda a: 255 if a > 0 else 0)
+    bbox = alpha.getbbox()
     if bbox is None:
         raise ValueError(f"{part} has no pixels")
-    image = image.crop(bbox)
-    w, h = image.size
-    scale = min(fill / w, fill / h)
-    nw, nh = max(1, round(w * scale)), max(1, round(h * scale))
-    image = image.resize((nw, nh), Image.Resampling.NEAREST)
-    canvas = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
-    canvas.alpha_composite(image, ((16 - nw) // 2, (16 - nh) // 2))
-    solid = [[canvas.getpixel((x, y))[3] > 0 for x in range(16)] for y in range(16)]
-    return dilate(solid) if expand else solid
+    shape = alpha.crop(bbox)
+    mask = Image.new("L", (16, 16), 0)
+    mask.paste(shape, ((16 - shape.width) // 2, (16 - shape.height) // 2))
+    return mask
 
 
-def cast_texture(mask, palette, seed):
-    rng = random.Random(seed)
-    image = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
-    for y in range(16):
-        for x in range(16):
-            if mask[y][x]:
-                continue
-            colour = palette[rng.randrange(len(palette))]
-            image.putpixel((x, y), (*colour, 255))
+def blank_texture(folder):
+    with zipfile.ZipFile(TCON_JAR) as jar:
+        path = f"assets/tconstruct/textures/{folder}/blank.png"
+        with jar.open(path) as handle:
+            image = Image.open(io.BytesIO(handle.read())).convert("RGBA")
+    if image.size != (16, 16):
+        raise ValueError(f"{folder}/blank.png is {image.size}, expected 16x16")
     return image
 
 
+def cut(blank, mask):
+    out = blank.copy()
+    for y in range(16):
+        for x in range(16):
+            if mask.getpixel((x, y)):
+                out.putpixel((x, y), (0, 0, 0, 0))
+    return out
+
+
 def main():
-    variants = (
-        (part_silhouette("spear_head", fill=12), "spear_head"),
-        (cast_mask(), "mace_head"),
-    )
-    palettes = (
-        (GOLD, "item/cast"),
-        (SAND, "item/sand_cast"),
-        (RED_SAND, "item/red_sand_cast"),
-    )
-    for mask, part in variants:
-        for palette, folder in palettes:
+    for part in ("spear_head", "mace_head"):
+        mask = cavity(part)
+        for folder, _ in BLANKS:
             path = RES / folder / f"{part}.png"
             path.parent.mkdir(parents=True, exist_ok=True)
-            seed = zlib.crc32(f"{part}/{folder}".encode())
-            cast_texture(mask, palette, seed=seed).save(path)
-    print("wrote 2 parts x 3 casts")
+            cut(blank_texture(folder), mask).save(path)
+    print("wrote 2 parts x 3 casts from TConstruct blank casts")
 
 
 if __name__ == "__main__":

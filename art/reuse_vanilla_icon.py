@@ -13,8 +13,9 @@ pieces are contiguous segments of one long object:
 Each piece is desaturated to grey but keeps its luminance, because the game multiplies
 the sprite by the three Tinker's material colours (head / handle / binding). The part
 icon and the part-builder button (hollow, as the GUI wants) are derived from the same
-pixels. The casts are drawn separately by `cast_art.py` (the cavity is much larger than
-the part icon, like TConstruct's own broad-blade cast).
+pixels, but the part icon's bounding box is centred in the 16x16 canvas: the casting
+table draws the cast and the part in the same frame, so a top-right part icon would sit
+outside the centred cast cavity. The casts are drawn separately by `cast_art.py`.
 
 Deterministic: rerun and you get the same files.
 """
@@ -73,6 +74,14 @@ def make_layer(pixels, group):
     return image
 
 
+def centred(image):
+    bbox = image.getbbox()
+    content = image.crop(bbox)
+    out = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    out.alpha_composite(content, ((16 - content.width) // 2, (16 - content.height) // 2))
+    return out
+
+
 def outline_of(image):
     out = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
     solid = [[image.getpixel((x, y))[3] > 0 for x in range(16)] for y in range(16)]
@@ -102,8 +111,9 @@ def main():
     shaft.save(RES / "item/spear_shaft_layer.png")
     cap.save(RES / "item/spear_binding_layer.png")
 
-    head.save(RES / "item/spear_head.png")
-    outline_of(head).save(RES / "gui/tinker_pattern/spear_head.png")
+    part = centred(head)
+    part.save(RES / "item/spear_head.png")
+    outline_of(part).save(RES / "gui/tinker_pattern/spear_head.png")
 
     print("wrote 3 layers + part icon + pattern")
 

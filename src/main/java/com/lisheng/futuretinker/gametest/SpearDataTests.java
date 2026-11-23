@@ -38,6 +38,9 @@ public final class SpearDataTests {
     private static final List<String> EXPECTED_RECIPES = List.of(
             "tools/building/spear",
             "tools/parts/builder/spear_head",
+            "tools/parts/casting/spear_head_gold_cast",
+            "tools/parts/casting/spear_head_sand_cast",
+            "tools/parts/casting/spear_head_composite",
             "smeltery/casts/gold/spear_head",
             "smeltery/casts/sand/molding/spear_head",
             "smeltery/casts/sand/builder_block/spear_head",

@@ -1,0 +1,16 @@
+{
+  "values": [
+    {
+      "id": "futuretinker:spear",
+      "required": false
+    },
+    {
+      "id": "futuretinker:mace",
+      "required": false
+    },
+    {
+      "id": "futuretinker:wolf_armor",
+      "required": false
+    }
+  ]
+}

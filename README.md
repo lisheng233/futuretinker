@@ -126,6 +126,7 @@ FMLCommonSetupEvent                         → 配置已加载
 | --- | --- | --- |
 | 4 个部件拼装 | `tool_definitions/wolf_armor_chestplate.json` | `WolfArmorDataTests` 断言部件数 4、其中 2 块是 `tconstruct:large_plate` |
 | 部件/铸造 | 复用匠魂 `chestplate_plating` / `maille` / `large_plate`，不自制 | 不自制就没有「插件部件缺 `<贴图>_<材料>` 变体」的紫黑问题 |
+| 换部件 | `modifiable/multipart` + `recipes/tools/armor/wolf_armor_swapping.json` | 工匠砧可换部件；铸造台可按板甲规则只换胸甲板材（`PartSwappingTests`） |
 | 护甲值 | 胸甲板材 × 2（`multiply_stats armor 2.0`） | 铁 = 10 点；原版 11 点是「只有一种材质」的固定值，这里按材料换算 |
 | 站台布局 | `station_layouts/wolf_armor.json`（4 个格子，顺序与部件一致） | `ToolBuildingRecipe.matches` 是**按下标**比对部件，顺序写错就配不上 |
 | 在哪做 | 匠魂砧（`ToolBuildingRecipe.requiresAnvil()`：部件 ≥ 4 就要砧） | 2 块大板的「贵」在这里兑现 |
@@ -167,15 +168,28 @@ FMLCommonSetupEvent                         → 配置已加载
 | `tconstruct:tough_binding` | 匠魂 | binding（无统计） | 匠魂既有流程 |
 
 **矛头的三种铸模**：`futuretinker:spear_head_cast`（金，可反复用）/ `_sand_cast` / `_red_sand_cast`，
-配方各三种（金铸造台、沙子压模、沙子模板）都在 `data/futuretinker/recipes/smeltery/casts/`。
+做铸模的配方各三种（金铸造台、沙子压模、沙子模板）都在 `data/futuretinker/recipes/smeltery/casts/`。
+
+**用铸模浇部件**：`data/futuretinker/recipes/tools/parts/casting/` 里每个部件有三条：
+金铸模（`tconstruct:casts/multi_use/*`，不消耗）/ 沙子和红沙（`single_use/*`，消耗一个）/
+复合浇筑（拿同种部件当铸模）。三种铸模物品通过 `data/tconstruct/tags/items/casts/`
+挂进匠魂的 `multi_use`、`single_use`、`gold`、`sand`、`red_sand` 标签。铸模只用于浇筑，
+**不加入部件台的 `pattern_item`**（部件台仍只用空白模板）。`CastCastingTests` 会用熔铁匹配
+这三条配方并检查浇出来的部件材料和数量。
+
+**换部件**：矛、狼牙棒和狼铠都在 `tconstruct:modifiable/multipart` 里，工匠砧可以直接替换部件；
+狼铠另有 `table_casting_part_swapping` 配方（`index 0` = 胸甲板材、6 点材料），可以在铸造台
+用熔融材料换板材，和匠魂板甲一样。
 
 **图标**（全部 `mc-art` 渲染，plan 由 `art/spear_masks.py` 生成，形状是「圆锥的二维投影」）：
 
-- 矛头**物品**图标：实心圆锥（做出来的东西是实心的）；
+- 矛头**物品**图标：实心圆锥（做出来的东西是实心的），轮廓在 16×16 画布中**居中**——
+  铸造台把铸模和产物画在同一帧里，居中后浇出来的矛头才会正好落在型腔里；
 - 部件台的 pattern 按钮、以及三种铸模：**中间透明**——铸模是「整块料挖出零件形状的洞」，
-  pattern 按钮是 1px 轮廓环（这两处按 GUI/铸模的规矩来）。铸模腔现在直接从**部件图标**
-  的 alpha 轮廓取得：矛头读 `item/spear_head.png`，棒头用 `mace_wolf_tooth.py` 的同一轮廓；
-  缩放到接近满画布并膨胀 1px，保证腔体和零件同形，由 `art/cast_art.py` 生成金/沙子/红沙三套；
+  pattern 按钮是 1px 轮廓环（这两处按 GUI/铸模的规矩来）。铸模直接以匠魂的
+  `cast/blank`、`sand_cast/blank`、`red_sand_cast/blank` 三张**空白铸模**为底，按**部件图标的
+  alpha 原尺寸**（居中、不缩放、不膨胀）扣出型腔——矛头读 `item/spear_head.png`，棒头读
+  `item/mace_head.png`；底纹质感全部来自匠魂原图，`art/cast_art.py` 生成金/沙子/红沙三套；
 - 矛本体：**复用原版 1.21.11 的 16×16 矛图标**（`art/refs_vanilla_spear.png`，从 1.21.11
   client.jar 提取）——`art/reuse_vanilla_icon.py` 抠底、沿矛轴切成三段（尾包口 / 木杆 / 矛头）、
   各自去饱和，作为三层贴图；游戏里三层 tintindex 0/1/2 分别按「矛头 / 手柄 / 绑定结」三个材料上色。
@@ -226,7 +240,8 @@ FMLCommonSetupEvent                         → 配置已加载
 
 **创造模式**：所有模块共用一个标签页「未来匠魂」（`futuretinker:main`）。标签页由模块表在
 物品注册完之后统一建，模块只把自己启用的物品交上去——关掉一个模块，标签页里就没有它的东西；
-全关掉时标签页本身也不注册。
+全关掉时标签页本身也不注册。矛头和棒头用匠魂的 `IMaterialItem.addVariants` 生成**每种可用
+材料各一份**的成品，和匠魂「部件」页一样，创造模式不必自己拼 NBT。
 
 **工匠砧里的样例**：站台布局的 `icon` 改成用具体材料（铁/木/铁）显示的同一件矛，
 不再用 `ui_render#*` 占位材料（那样会显示成一块白图，和旁边的匠魂工具格格不入）。
@@ -280,15 +295,18 @@ TOUGH（减速/中横扫）、LIGHT（快打/宽横扫）、NEUTRAL。
 - **造型**：按真实狼牙棒重画——**粗椭圆棒身 + 成排狼牙 + 底部斜向箍环 + 尖头**，不是原版重锤；
   箍环垂直于棒轴，手柄沿同一轴线接入（不是横着贴在头底的木棍）。
   参考照片的轮廓由 `art/mace_wolf_tooth.py` 描成 **32×32** 的工具两层灰度
-  （棒头/手柄分别按两个材料上色）；部件图标、部件台 pattern 和铸模腔是同一轮廓的
-  **16×16** 版本，铸模腔由 `cast_mask()` 膨胀 1px 生成（`art/cast_art.py`）。
+  （棒头/手柄分别按两个材料上色）；手柄和箍环用同一条棒轴，逐行固定宽度光栅化，
+  中线不再中途错位；部件图标、部件台 pattern 和铸模腔是同一轮廓的
+  **16×16** 版本，铸模腔取部件图标 alpha 的原尺寸（`art/cast_art.py`，不膨胀）。
   手持仍用 `handheld_mace` 的 display 变换。
 - **流血**：命中就挂 `futuretinker:bleed`（状态栏可见）；buff 期间目标**移动**时每 10 tick
   被撕裂掉血（魔法伤害，无视护甲）；站着不动不掉血。HARD 形态 amplifier 1，其余 0；
   横扫命中的每个目标也会挂。
 - **铸模**：棒头的金/沙子/红沙三种铸模和矛头一样走匠魂的 `PartCastItem` +
   `tconstruct:casting_table` / `molding_table` / `item_part_builder`，不是自定义铸模类型；
-  三张贴图和物品模型由 `art/cast_art.py` 生成（满画布的透明型腔，和匠魂 `hammer_head` 一致）。
+  浇筑配方在 `data/futuretinker/recipes/tools/parts/casting/`（金可复用、沙/红沙消耗），
+  三张贴图由 `art/cast_art.py` 从匠魂三张空白铸模扣出部件型腔（原尺寸、不膨胀），
+  和匠魂自己的 `hammer_head` 等铸模同一做法。
 - **自定义统计**：棒头的 `futuretinker:hardness` / `toughness` 会显示在部件 tooltip；
   狼牙棒本体 tooltip 也显示形态和这两条统计（材料数据优先，经典材料走内置表，
   其余材料按头材料的耐久/攻击/等级推导）。
@@ -304,7 +322,7 @@ TOUGH（减速/中横扫）、LIGHT（快打/宽横扫）、NEUTRAL。
 - `gradlew build` 退出码 0；产物 `build/libs/futuretinker-0.1.0.jar` 里 `mods.toml` 的占位符
   已展开、中文描述是合法 UTF-8、`pack.mcmeta` 的 `pack_format=15`。
 - `libs/` 里的匠魂/Mantle jar 经 `flatDir` + `fg.deobf` 正确解析，deobf 产物存在。
-- `python tools/verify_gametest.py` 通过：**38 条必需测试全过**，日志有批次计数，退出码 0。
+- `python tools/verify_gametest.py` 通过：**41 条必需测试全过**，日志有批次计数，退出码 0。
 - `python tools/verify_gametest.py --fault` 下判定失败（`1 required tests failed :(`，
   gradle 退出码 1，脚本判「注入的故障被抓住」），证明这套检查会说不。
 - 模组加载期崩溃/编译失败时脚本判定「没跑到测试」（退出码 2），不会误读成通过。
@@ -331,7 +349,12 @@ TOUGH（减速/中横扫）、LIGHT（快打/宽横扫）、NEUTRAL。
   测试把战场抬到 40 格高空避开隔壁结构；抬上去后是石头，而原版方块裁剪从眼睛开始，
   所以 `carveTestRoom` 先挖一个沿 +X 的空气房再开打（不要在生产代码里忽略贴脸方块）。
 - **三种铸模真的注册了**：`SpearDataTests.castsAreRegistered`（三个 `PartCastItem`），
-  外加 9 个配方 id 的加载断言（装配、部件台、金铸模、沙子/红沙的压模与两种模板）。
+  外加 12 个配方 id 的加载断言（装配、部件台、三种浇筑、金铸模、沙子/红沙的压模与两种模板）。
+- **铸模真的能浇部件**：`CastCastingTests` 用熔铁匹配金/沙/红沙/复合配方，校验产物部件 +
+  材料、流体量（2/3 点）和「金不消耗、沙消耗」；标签也逐项断言。
+- **换部件 / 创造栏**：`PartSwappingTests` 断言矛、狼牙棒、狼铠都在
+  `tconstruct:modifiable/multipart`，并用匠魂的工匠砧换部件配方实际匹配三件物品；
+  狼铠换板配方也匹配「狼铠 + 熔融铜」；同时检查矛头/棒头的 `addVariants` 能列出全部可用材料。
 - **百科里有矛**：`SpearDataTests.spearIsListedInTheEncyclopedia` 断言矛在
   `tconstruct:modifiable/small` 里（这是百科生成工具页的机制），且文案文件存在。
 - **只有一个标签页，且跟着开关走**：`ModuleGateTests.gateIsWiredToConfig` 现在断言

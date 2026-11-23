@@ -146,7 +146,7 @@
 
 ## M4/M5 进度（长矛）
 
-**已通**（38 条 GameTest 全部通过，其中长矛相关 19 条）：
+**已通**（41 条 GameTest 全部通过，其中长矛相关 19 条）：
 
 - 物品是匠魂工具 `futuretinker:spear`（显示名「矛」）；部件是 **矛头（自制）+ `tough_binding` + `tough_handle`**。
   矛头是普通部件物品（`ToolPartItem` + `HeadMaterialStats`），部件台里用空白模板 + 材料做，
@@ -158,7 +158,8 @@
   但那是给匠魂自己的工具页生成的，插件贴图没有变体 → 手里/地上是紫黑格。改成平铺多层 + 染色。
 - **百科**：矛进 `tconstruct:modifiable/small`，百科的「小工具」章节按标签自动生成页面，
   文案在 `assets/tconstruct/book/encyclopedia/{en_us,zh_cn}/tools/small/futuretinker_spear.json`。
-- **创造模式**：所有模块共用一个标签页「未来匠魂」（`futuretinker:main`），由模块表统一注册。
+- **创造模式**：所有模块共用一个标签页「未来匠魂」（`futuretinker:main`），由模块表统一注册；
+  矛头/棒头走 `IMaterialItem.addVariants`，每个可用材料各列一份成品，和匠魂「部件」页一致。
 - **戳刺**：主手加 `forge:entity_reach` +1.5（触及 4.5）；2 格内取消；不满蓄力取消；
   `CriticalHitEvent` 设 `DENY` 取消暴击；结算前取消疾跑状态以规避冲刺击退；
   左键方块取消（不挖方块）；`sweep` 用眼睛射线 + `box.inflate(0.125)` 扫多个目标，
@@ -182,15 +183,23 @@
   **in-hand 图层保持原版方向**：原版图的头在左上，`spear_in_hand` 的 firstperson display
   变换下左上端正好在准星附近；之前转 180° 是弄反了（三色分层实机截图确认）。
 - **铸模/书**：矛头和棒头的金/沙/红沙铸模都走匠魂 `PartCastItem` + casting_table/molding/
-  item_part_builder；腔体从对应部件图标的 alpha 放大并膨胀 1px 得到（`art/cast_art.py`）；
+  item_part_builder；腔体直接从匠魂三张空白铸模（`blank`）扣出，形状取对应部件图标 alpha
+  的原尺寸（居中、不缩放、不膨胀，`art/cast_art.py`）；
+  浇筑部件的 `table_casting_material` / `table_casting_composite` 配方在
+  `data/futuretinker/recipes/tools/parts/casting/`，三种铸模挂进 `tconstruct:casts/`
+  的 `multi_use` / `single_use` / `gold` / `sand` / `red_sand` 标签；铸模**不**加入部件台
+  `pattern_item`（部件台只用空白模板）。矛头部件图标在画布中居中，保证铸造台里产物与型腔重合；
   工具定义加 `fixed_material_name`（百科显示“任意 矛/狼牙棒”）。
   狼铠百科页挂到 `tconstruct:modifiable/book_armor` 标签（护甲章读的是这个，不是普通 armor 标签）。
+- **换部件**：矛、狼牙棒、狼铠都挂进 `tconstruct:modifiable/multipart`，工匠砧可替换部件；
+  狼铠另有 `table_casting_part_swapping` 配方（index 0 = 胸甲板材，6 点材料），按板甲规则
+  可在铸造台用熔融材料换板材。`PartSwappingTests` 查标签、配方类型和材料罗列版。
 - **材料映射**：矛头耐久分档 0~4 当「等级」（正好对应原版木/石/铁/钻石/下界合金），
   等级决定倍率（0.7~1.2）、挑落阈值（14/10/8/7.5/7 格/秒）与四个数值
   （激活延迟 + 激活后的三个窗口；击退窗口按原版 10.0/9.0/6.75/6.5/5.5 秒 =
   200/180/135/130/110 tick）；
   手柄材料的 `durability` 比例修正（-0.35~+0.35）给三个窗口各加 ±10 tick。
-- 判定：38 条必需测试全过；`--fault` 仍被抓到。
+- 判定：41 条必需测试全过；`--fault` 仍被抓到。
 
 ## 狼牙棒（模块三，后加）
 
@@ -199,11 +208,12 @@
   经典表，再按头材料的耐久/攻击/挖掘等级推导），决定 HARD / TOUGH / LIGHT / NEUTRAL 四种形态。
 - **命中必挂流血**；流血期间目标移动时每 10 tick 触发一次魔法伤害，站着不动不掉血。
 - 按真实狼牙棒重画：粗椭圆棒身 + 成排狼牙 + 底部斜向箍环 + 尖头；箍环垂直于棒轴，
-  手柄沿同一轴接入。`art/mace_wolf_tooth.py`
-  生成 32×32 工具两层灰度（棒头/手柄按材料上色）；部件图标/pattern/铸模腔是同一轮廓的
-  16×16 版本（`cast_mask()` 膨胀 1px），手持用 `handheld_mace` 的 display 变换。横扫角度/伤害系数与
-  手柄移速惩罚由形态/重量决定。
-- 棒头的三种铸模走匠魂 `PartCastItem` + 对应 recipe 类型；`MaceHeadItem`/`MaceItem`
+  手柄沿同一轴接入，逐行按固定宽度光栅化（中线不会中途错位）。`art/mace_wolf_tooth.py`
+  生成 32×32 工具两层灰度（棒头/手柄按材料上色）；部件图标/pattern 是同一轮廓的 16×16 版本，
+  铸模腔取部件图标 alpha 原尺寸从空白铸模扣出；手持用 `handheld_mace` 的 display 变换。
+  横扫角度/伤害系数与手柄移速惩罚由形态/重量决定。
+- 棒头的三种铸模走匠魂 `PartCastItem` + 对应 recipe 类型，浇筑配方和标签与矛头同规则；
+  `MaceHeadItem`/`MaceItem`
   的 tooltip 显示 `futuretinker:hardness/toughness`（材料数据优先，经典材料走内置表，
   其余材料按头材料统计推导）。铸模腔从部件图标 alpha 生成（矛头/棒头同一规则）。
 - 补充 `pattern.futuretinker.mace_head`、铸模物品名、形态 tooltip 等翻译键。

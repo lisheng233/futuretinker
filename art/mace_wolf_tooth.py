@@ -7,8 +7,7 @@ and casts stay 16x16, as Tinkers expects.
 
 Two grayscale layers are written for the tool (head / handle) so Tinkers can tint
 them with two materials. The part icon and pattern are derived from the 16x16 head
-silhouette; the cast cavity is the same silhouette (dilated 1px) so the mould matches
-the part.
+silhouette; the cast cavity is that silhouette at native size (see cast_art.py).
 
 Deterministic: rerun and you get the same files.
 """
@@ -20,6 +19,10 @@ from PIL import Image
 
 ART = pathlib.Path(__file__).resolve().parent
 RES = ART.parent / "src/main/resources/assets/futuretinker/textures"
+
+# The head axis; the collar and the handle are both built from it.
+HEAD_BASE = (11.0, 19.0)
+HEAD_TIP = (29.0, 2.0)
 
 # 32x32 head silhouette, collar at the lower-left, pointed tip at the upper-right.
 TOOL_MASK = """
@@ -143,15 +146,22 @@ def to_image(pix, size):
     return im
 
 
+def axis():
+    ax, ay = HEAD_BASE
+    bx, by = HEAD_TIP
+    dx, dy = bx - ax, by - ay
+    length = math.hypot(dx, dy)
+    return ax, ay, dx / length, dy / length
+
+
 def draw_tool_head():
     mask = shift(TOOL_MASK, 32, 4, -5)
-    pix = shade(mask, 32, base=(11, 19), tip=(29, 2), half=7.0,
+    pix = shade(mask, 32, base=HEAD_BASE, tip=HEAD_TIP, half=7.0,
                 bands=(195, 165, 135, 98, 62),
                 tip_highlights=(((30, 2), 235), ((29, 1), 220), ((28, 3), 220)))
     # socket collar: a band perpendicular to the head axis at its base, so the
     # handle (also on that axis) has a real mount instead of a horizontal shelf
-    ax, ay = 11.0, 19.0
-    ux, uy = 18.0 / math.hypot(18.0, -17.0), -17.0 / math.hypot(18.0, -17.0)
+    ax, ay, ux, uy = axis()
     for (x, y) in list(pix):
         along = (x - ax) * ux + (y - ay) * uy
         if -0.6 <= along <= 0.6:
@@ -163,20 +173,24 @@ def draw_tool_head():
 
 def draw_handle():
     im = Image.new('RGBA', (32, 32), (0, 0, 0, 0))
-    # 4px-wide diagonal shaft from the butt to the collar centre
-    for i in range(0, 101):
-        t = i / 100
-        cx = 1 + (11 - 1) * t
-        cy = 31 + (19 - 31) * t
-        for off, v in ((-1, 60), (0, 125), (1, 100), (2, 58)):
-            x, y = round(cx) + off, round(cy) + off
-            if 0 <= x < 32 and 0 <= y < 32:
+    ax, ay, ux, uy = axis()
+    # One row at a time on the head axis: a fixed 5px-wide strip.  A distance
+    # field let the width wobble by a pixel and stepped twice on some rows,
+    # which read as a kink halfway down; this keeps every row moving one pixel.
+    bands = (45, 92, 150, 118, 45)
+    for y in range(16, 28):
+        left = round(ax + (y - ay) * (ux / uy)) - 2
+        for i, v in enumerate(bands):
+            x = left + i
+            if 0 <= x < 32:
                 im.putpixel((x, y), (v, v, v, 255))
-    # pommel
-    for x in range(1, 5):
-        for y in (30, 31):
-            v = 95 if y == 30 else 65
-            im.putpixel((x, y), (v, v, v, 255))
+    # rounded pommel, kept clear of the canvas edge
+    for y in range(24, 32):
+        for x in range(0, 6):
+            distance = math.hypot(x - 2.1, y - 28.2)
+            if distance <= 2.1:
+                v = 45 if distance > 1.55 else 98
+                im.putpixel((x, y), (v, v, v, 255))
     return im
 
 
@@ -204,22 +218,6 @@ def pattern_from(image):
     return pattern
 
 
-def cast_mask():
-    """16x16 cavity mask: the part silhouette, dilated 1px so spikes connect."""
-    solid = [[PART_MASK[y][x] == '#' for x in range(16)] for y in range(16)]
-    out = [[False] * 16 for _ in range(16)]
-    for y in range(16):
-        for x in range(16):
-            if not solid[y][x]:
-                continue
-            for dy in (-1, 0, 1):
-                for dx in (-1, 0, 1):
-                    nx, ny = x + dx, y + dy
-                    if 0 <= nx < 16 and 0 <= ny < 16:
-                        out[ny][nx] = True
-    return out
-
-
 def main():
     tool_head = draw_tool_head()
     handle = draw_handle()
@@ -241,7 +239,7 @@ def main():
     (ART / "out").mkdir(parents=True, exist_ok=True)
     preview.resize((preview.width * 8, preview.height * 8), Image.NEAREST).save(
         ART / "out/mace_preview.png")
-    print("wrote tool/part/pattern and cast mask")
+    print("wrote tool/part/pattern")
 
 
 if __name__ == "__main__":

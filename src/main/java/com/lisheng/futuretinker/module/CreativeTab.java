@@ -10,6 +10,7 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.RegisterEvent;
+import slimeknights.tconstruct.library.tools.part.IMaterialItem;
 
 /**
  * 唯一的创造模式标签页「未来匠魂」。
@@ -47,7 +48,15 @@ public final class CreativeTab {
         event.register(Registries.CREATIVE_MODE_TAB, FutureTinker.id(ID), () -> CreativeModeTab.builder()
                 .title(Component.translatable("itemGroup." + FutureTinker.MOD_ID + "." + ID))
                 .icon(() -> new ItemStack(ITEMS.get(0).get()))
-                .displayItems((parameters, output) -> ITEMS.forEach(item -> output.accept(item.get())))
+                .displayItems((parameters, output) -> ITEMS.forEach(supplier -> {
+                    Item item = supplier.get();
+                    if (item instanceof IMaterialItem materialItem) {
+                        // 和匠魂的部件页一样，按材料逐个列出，创造模式直接拿成品部件
+                        materialItem.addVariants(output::accept, "");
+                    } else {
+                        output.accept(item);
+                    }
+                }))
                 .build());
     }
 }

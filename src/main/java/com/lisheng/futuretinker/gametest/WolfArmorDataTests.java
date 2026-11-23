@@ -28,7 +28,9 @@ import slimeknights.tconstruct.library.tools.part.IToolPart;
 public final class WolfArmorDataTests {
     private WolfArmorDataTests() {}
 
-    private static final List<String> EXPECTED_RECIPES = List.of("tools/building/wolf_armor");
+    private static final List<String> EXPECTED_RECIPES = List.of(
+            "tools/building/wolf_armor",
+            "tools/armor/wolf_armor_swapping");
     private static final ResourceLocation LARGE_PLATE = new ResourceLocation("tconstruct", "large_plate");
 
     @PrefixGameTestTemplate(false)

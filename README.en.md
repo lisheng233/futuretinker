@@ -5,7 +5,7 @@
 A **Tinkers' Construct add-on for Minecraft 1.20.1** that rebuilds newer vanilla equipment
 and mechanics with Tinkers' materials, parts, and modifiers.
 
-> Status: **0.1.0beta**. Back up your worlds before testing. The full engineering notes
+> Status: **0.1.0**. Back up your worlds before testing. The full engineering notes
 > (in Chinese) are in [README.md](README.md) and [PLAN.md](PLAN.md).
 
 ## Requirements
@@ -41,6 +41,9 @@ A Tinkers' `ModifiableArmorItem` worn by **wolves**, not players.
 - Absorbs non-magic damage with its own durability (1:1 by default), drops on death, and has
   an encyclopedia page.
 - The base armor multiplier, toughness, flat bonuses, and absorption ratio are configurable.
+- Part swapping: the armor is in `tconstruct:modifiable/multipart` (Tinker Station), and
+  `recipes/tools/armor/wolf_armor_swapping.json` adds the plate-armor-style casting-table
+  recipe for its chestplate plating.
 
 ### Spear
 
@@ -56,9 +59,19 @@ A Tinkers' tool with a new `spear_head` part, a tough handle, and a tough bindin
   - relative-speed damage `attack damage + floor(relative speed × multiplier)`;
   - separate dismount, knockback, and damage windows;
   - a 10-tick per-target contact cooldown.
-- Gold/sand/red-sand casts are registered through Tinkers' `PartCastItem` and the standard
-  casting/molding recipes. The cast cavity is derived from the part icon's alpha, scaled up
-  and dilated by 1px.
+- Gold/sand/red-sand casts are registered through Tinkers' `PartCastItem`. Creating each
+  cast and pouring parts from it both use the standard casting/molding recipes:
+  `recipes/tools/parts/casting/` has the reusable gold cast, the consumed sand/red-sand
+  casts, and composite casting, while `data/tconstruct/tags/items/casts/` puts the tools
+  into Tinkers' `multi_use`, `single_use`, `gold`, `sand`, and `red_sand` tags.
+  Each texture starts from the matching Tinkers' blank cast (`cast/blank`,
+  `sand_cast/blank`, `red_sand_cast/blank`) and punches out the part icon's alpha at
+  native size — centred, not scaled, not dilated. The casts are **not** part-builder
+  pattern items; the builder still uses blank patterns.
+- The part icon itself is centred in its 16×16 canvas, so the casting table draws the
+  cast and the poured part in the same frame and the part lands inside the cavity.
+- Part swapping: the spear is in `tconstruct:modifiable/multipart`, so its head, handle,
+  and binding can be replaced at the Tinker Station.
 - First- and third-person charge/jab animations, with the vanilla swing duration.
 - Per-material charge stats and fatigue windows; the tuning audit is in
   [docs/spear_charge_audit.md](docs/spear_charge_audit.md).
@@ -78,7 +91,16 @@ A heavy Chinese wolf-tooth club built from a custom mace head and a tough handle
   - **NEUTRAL**: baseline.
 - A full-charge hit sweeps targets in front; the handle's weight applies a movement-speed
   penalty.
-- Gold/sand/red-sand casts follow the same part-derived cavity rule as the spear.
+- The handle and the socket collar share one head axis; the shaft is rasterised one
+  row at a time at a fixed width, so its centreline no longer steps halfway down.
+- Gold/sand/red-sand casts follow the same recipes, tags, and blank-cast cavity rule as
+  the spear; the mace is also in `tconstruct:modifiable/multipart` for part swapping.
+
+## Creative Tab
+
+The shared "Future Tinker" tab lists the spear head and mace head once per usable
+material via Tinkers' `IMaterialItem.addVariants`, matching how Tinkers' own parts tab
+works. Tools and casts are listed once.
 
 ## Configuration
 
@@ -136,7 +158,11 @@ tools/               GameTest verification script
 
 ## Verification and Known Limitations
 
-- `gradlew build` passes; `tools/verify_gametest.py` reports **38/38 required tests passed**.
+- `gradlew build` passes; `tools/verify_gametest.py` reports **41/41 required tests passed**.
+- `CastCastingTests` checks all gold/sand/red-sand pouring recipes, their fluid amounts,
+  consumed flags, and item tags; `PartSwappingTests` matches the Tinker Station swap recipe
+  against the spear, mace, and wolf armor, the wolf armor casting-table plating swap
+  against molten copper, and the per-material creative variants.
 - The mod has not been tested inside a large modpack alongside Tinkers' Tools/Dreamtinker.
 - Wolf armor client visuals, part-pattern buttons, and some material color combinations
   still need in-game confirmation.
